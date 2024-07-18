@@ -31,8 +31,6 @@ catch {
 # Temporary test VM
 $TestVM = "ups-dummy-vm01"
 Write-Host "Abusing " $TestVM
-
-
 Write-Host "Setting VM description to" $DateVar "on" $TestVM
 Set-VM $TestVM -Description $DateVar -confirm:$false
 # Get-VM $TestVM | Shutdown-VMGuest -Confirm:$false # Shut down requires VMware tools
@@ -52,6 +50,7 @@ Write-Host "Found ESXi Hosts:" $ESXiHost
 
 
 Write-Host "Looping through all Powered ON VMs:"
+# How to handle vCLS VMs?
 
 Foreach ($VM in ($ESXiHost | Get-VM)){
     # Shutdown the guest cleanly
