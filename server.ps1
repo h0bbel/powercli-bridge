@@ -1,7 +1,9 @@
 # Notes
 #
-# Seems the scripts in /endpoints/ and /routes/ get autorun when starting the server. Be careful. Not sure how to handle.
+# Do not start server.ps1 directly, as it autoruns the endpoints
 # Seems like just doing pode start, instead of starting server.ps1, actually fixes that somehow.
+# Or does it? Seems to be OK now, so perhaps I did something very weird. 18.07.2024
+
 # TODO:
 #   All scripts should be located in /endpoints/, needs cleanup
 #   All scripts need a versioning scheme
@@ -16,7 +18,7 @@
 #   https://blog.mwpreston.net/2012/08/07/practise-makes-perfect-more-powercli-apc-powerchute-network-shutdown-goodness-now-with-power-on/
 #   https://polarclouds.co.uk/esxi-rpi-ups-pt3/
 #   
-
+Write-Host "$MyInvocation.CommandOrigin"
 
 #Start Pode Server
 Start-PodeServer {
@@ -48,11 +50,10 @@ Start-PodeServer {
         }
 
         # authentication failed
-         Write-Host "Autentication failed. Reason: API Key from header invalid:" $key "X_PODE_API_KEY:" $X_PODE_API_KEY
+        Write-Host "Autentication failed. Reason: API Key from header invalid:" $key "X_PODE_API_KEY:" $X_PODE_API_KEY
         return $null
     }
-
-    # Seems like this actually autoruns! Careful! Not sure how to handle that!
+    
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
 
