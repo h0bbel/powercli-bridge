@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "install": "yarn install --force --ignore-scripts --modules-folder pode_modules",
+    "build": "psake",
+    "test": "invoke-pester ./tests/*.ps1",
+    "start": "./server.ps1"
+  },
+  "license": "MIT",
+  "description": "",
+  "version": "1.0.0",
+  "name": "powercli-bridge",
+  "author": "Christian Mohn",
+  "main": "./server.ps1"
+}
