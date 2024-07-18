@@ -1,6 +1,7 @@
 # Notes
 #
 # Seems the scripts in /endpoints/ and /routes/ get autorun when starting the server. Be careful. Not sure how to handle.
+# Seems like just doing pode start, instead of starting server.ps1, actually fixes that somehow.
 # TODO:
 #   All scripts should be located in /endpoints/, needs cleanup
 #   All scripts need a versioning scheme
