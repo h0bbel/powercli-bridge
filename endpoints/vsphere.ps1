@@ -3,9 +3,9 @@
 # But not if Pode is started with pode start (HUH!)
 
 # Standard Definitions
-$APIcall = "vmtools/vsphere"
 $DateVar = Get-Date -Format "dd/MM/yyyy HH:mm K"
-
+$endpoint = "vmtools/vsphere"
+$version = "0.1"
 
 # Define vCenter Server details
 # Could this be included from external source?
@@ -61,13 +61,13 @@ Foreach ($VM in ($ESXiHost | Get-VM)){
 }
 
 # Add host shutdown?
-# Chicken and egg situation?
+# Chicken and egg situation? Let BIOS handle power-on events again and auto-start vCenter?
 # Anyway; Stop-VMHost should do it...
 
 Disconnect-VIServer * -Confirm:$false
 
 # Pode Output
 #Write-PodeTextResponse -Value "Doing things to VMs"
-Write-PodeJsonResponse -Value @{ "success" = "true";"message"= "$APIcall was executed";"timestamp"="$DateVar"}
+Write-PodeJsonResponse -Value @{ "success" = "true";"message"= "$endpoint was executed";"timestamp"="$DateVar"}
 
 

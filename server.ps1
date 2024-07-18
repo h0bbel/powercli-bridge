@@ -23,12 +23,6 @@ Start-PodeServer {
     #Attach port 8085 to the local machine address and use HTTP protocol
     Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
 
-
-    #Create route and return a static value
-    Add-PodeRoute -Method Get -Path '/static' -ScriptBlock {
-        Write-PodeJsonResponse -Value @{ 'value' = 'My first API response!' }
-    }
-
     # Seems like this actually autoruns! Careful! Not sure how to handle that!
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
@@ -39,13 +33,22 @@ Start-PodeServer {
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
  
-    Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -ScriptBlock {
+    Add-PodeRoute -Method Get -Path '/v1/version' -ScriptBlock {
+        $stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
+    }
+
+    Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     }
 
+    Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -ScriptBlock {
+        $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
+    }
+
+
     # Create endpoints dynamically for all .ps1 files in $FolderPath
-    $FolderPath = "endpoints"
-    $fileBaseNames = (Get-ChildItem $FolderPath\*.ps1).BaseName
+    #$FolderPath = "endpoints"
+    #$fileBaseNames = (Get-ChildItem $FolderPath\*.ps1).BaseName
 
     #Iterate through Files in $fileBaseNames and create endpoints
     #ForEach ($File in $fileBaseNames) {
