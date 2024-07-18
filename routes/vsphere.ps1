@@ -6,9 +6,9 @@ $DateVar = Get-Date -Format "dd/MM/yyyy HH:mm K"
 # Define vCenter Server details
 # Could this be included from external source?
 
-$vCenterServer = "192.168.5.30"
+$vCenterServer = "vc01.explabs.badunicorn.no"
 $Username = "administrator@vsphere.local"
-$Password = "fr3Kecap!"
+$Password = "Pronet2012!"
 
 Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP $false -Confirm:$false
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
@@ -24,13 +24,16 @@ catch {
     # Does not work.
     exit
 }
+
 # Temporary test VM
+$TestVM = "ups-dummy-vm01"
 Write-Host "Abusing " $TestVM
-$TestVM = "dummy01"
+
 
 Write-Host "Setting VM description to" $DateVar "on" $TestVM
 Set-VM $TestVM -Description $DateVar -confirm:$false
-Get-VM $TestVM | Shutdown-VMGuest -Confirm:$false
+# Get-VM $TestVM | Shutdown-VMGuest -Confirm:$false # Shut down requires VMware tools
+Get-VM $TestVM | Stop-VM -Confirm:$false
 
 # Shutdown-VMGuest/Stop-VM doesn't work without VMware tools
 # Add in power-off for VMs that are still running after x amount of time?
@@ -44,7 +47,6 @@ Write-Host "Found ESXi Hosts:" $ESXiHost
 # From https://www.virtu-al.net/2010/01/06/powercli-shutdown-your-virtual-infrastructure/
 # For each of the VMs on the ESX hosts
 
-Write-Host "Found Hosts:" $ESXiHost
 
 Write-Host "Looping through all Powered ON VMs:"
 
@@ -58,7 +60,7 @@ Foreach ($VM in ($ESXiHost | Get-VM)){
 # Chicken and egg situation?
 # Anyway; Stop-VMHost should do it...
 
-Disconnect-VIServer * -Confirm:$false
+#Disconnect-VIServer * -Confirm:$false
 
 # Pode Output
 #Write-PodeTextResponse -Value "Doing things to VMs"

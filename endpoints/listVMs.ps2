@@ -1,9 +1,9 @@
 # Currently not working
 
     # Define vCenter Server details
-    $vCenterServer = "192.168.5.30"
+    $vCenterServer = "vc01.explabs.badunicorn.no"
     $Username = "administrator@vsphere.local"
-    $Password = "fr3Kecap!"
+    $Password = "Pronet2012!"
 
     #Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP $false -Confirm:$false
     Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
@@ -29,13 +29,24 @@
 
     # This doesn't really return the VM list ($vms) just prints it on screen. How do I fix that? Get the output into the "master" script?
 
+# Get all hosts
+$ESXiHost = Get-VMHost
+Write-Host "Found Hosts:" $ESXiHost 
+
+# Loop through powered on VMs.
+# From https://www.virtu-al.net/2010/01/06/powercli-shutdown-your-virtual-infrastructure/
+# For each of the VMs on the ESX hosts
+
+
+Write-Host "Looping through all Powered ON VMs:"
+
+Foreach ($VM in ($ESXiHost | Get-VM)){
+    # Shutdown the guest cleanly
+    Write-Host "Found Powered on VM:" $VM
+    #$VM | Shutdown-VMGuest -Confirm:$false # This will power off VMs
+}
+
     Disconnect-VIServer * -Confirm:$false
 
-# Pode Output
-{
-
-    #Write-PodeJsonResponse -Value @{ 'value' = 'pong';"success" = "true";"message"= "$endpoint was executed";"timestamp"="$DateVar"}
-    Write-PodeJsonResponse -Value @{ 'value' = $vms;"success" = "true";"message"= "$endpoint was executed";"timestamp"="$DateVar"}
-}
 
 

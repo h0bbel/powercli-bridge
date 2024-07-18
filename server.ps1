@@ -39,18 +39,18 @@ Start-PodeServer {
     #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
  
     Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -ScriptBlock {
-        $stuff = & "$PSScriptRoot\routes\vsphere.ps1"
+        $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     }
 
-    # Create endpoints dynamicly for all .ps1 files in $FolderPath
+    # Create endpoints dynamically for all .ps1 files in $FolderPath
     $FolderPath = "endpoints"
     $fileBaseNames = (Get-ChildItem $FolderPath\*.ps1).BaseName
 
     #Iterate through Files in $fileBaseNames and create endpoints
-    ForEach ($File in $fileBaseNames) {
-        #Write-Host "Processing file: $($File)"
-        #Write-Host "Endpoint:" "/endpoints/$File"
-        #Write-Host "Endpoint local path:" "$PSScriptRoot/endpoints/$File"
-        Add-PodeRoute -Method Get -Path "/endpoints/$File" -FilePath "$PSScriptRoot/endpoints/$File.ps1"
-    }
+    #ForEach ($File in $fileBaseNames) {
+    #    Write-Host "Processing file: $($File)"
+    #    Write-Host "Endpoint:" "/endpoints/$File"
+    #    Write-Host "Endpoint local path:" "$PSScriptRoot/endpoints/$File"
+    #    Add-PodeRoute -Method Get -Path "/endpoints/$File" -FilePath "$PSScriptRoot/endpoints/$File.ps1"
+    #}
 }   
