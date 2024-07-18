@@ -24,8 +24,7 @@ try {
 }
 catch {
     Write-Host "Failed to connect to vCenter Server: $($_.Exception.Message)" -ForegroundColor Red
-    #Write-PodeJsonResponse -Value @{ "success" = "false;"message"= "Unable to connect to $vCenterServer";"timestamp"="$DateVar"}
-    # Does not work.
+    Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to $vCenterServer";"timestamp"="$DateVar"}
     exit
 }
 
@@ -69,5 +68,4 @@ Disconnect-VIServer * -Confirm:$false
 # Pode Output
 #Write-PodeTextResponse -Value "Doing things to VMs"
 Write-PodeJsonResponse -Value @{ "success" = "true";"message"= "$endpoint was executed";"timestamp"="$DateVar"}
-
 
