@@ -17,11 +17,40 @@
 #   https://polarclouds.co.uk/esxi-rpi-ups-pt3/
 #   
 
+
 #Start Pode Server
 Start-PodeServer {
 
+
+
+
     #Attach port 8085 to the local machine address and use HTTP protocol
     Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
+
+    # Auth test
+
+    # setup apikey authentication to validate a user
+    New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
+        param($key)
+        
+        $X_PODE_API_KEY = '123456' # Should be changed to a ENV variable or some other secret.
+        
+        #Write-Host "PODEAPIKEY:" $PODEAPIKEY
+        # here you'd check a real storage, this is just for example
+        if ($key -eq $X_PODE_API_KEY) {
+            return @{
+                User = @{
+                    'ID' ='M0R7Y302'
+                    #'Name' = 'Morty'
+                    #'Type' = 'Human'
+                }
+            }
+        }
+
+        # authentication failed
+         Write-Host "Autentication failed. Reason: API Key from header invalid:" $key "X_PODE_API_KEY:" $X_PODE_API_KEY
+        return $null
+    }
 
     # Seems like this actually autoruns! Careful! Not sure how to handle that!
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
@@ -32,16 +61,16 @@ Start-PodeServer {
 
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
- 
-    Add-PodeRoute -Method Get -Path '/v1/version' -ScriptBlock {
+
+    Add-PodeRoute -Method Get -Path '/v1/version' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
     }
 
-    Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -ScriptBlock {
+    Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     }
 
-    Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -ScriptBlock {
+    Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
 
