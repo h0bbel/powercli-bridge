@@ -75,6 +75,10 @@ Start-PodeServer {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
 
+    Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
+        $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
+    }
+
 
     # Create endpoints dynamically for all .ps1 files in $FolderPath
     #$FolderPath = "endpoints"
