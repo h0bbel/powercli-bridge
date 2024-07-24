@@ -56,7 +56,7 @@ catch {
 
 # For each loop VMware tools present or not?
 
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" 
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" # Grab all VMs except vCLS
 Write-Host "Discovered these powered on VMs: $VMs" -Foregroundcolor Green
 
 ForEach ( $VM in $VMs ) 
@@ -67,17 +67,19 @@ ForEach ( $VM in $VMs )
     if ($VMinfo.config.Tools.ToolsVersion -eq 0)
     {
         Write-Host "No VMware tools detected in $VM, hard power off" -ForegroundColor Red
-        Set-VM -Description "$VMDescription - Hard Shutdown" -confirm:$false | Stop-VM $VM -confirm:$false
+        Set-VM $VM -Description "$VMDescription - Hard Shutdown" -confirm:$false
+        Stop-VM $VM -confirm:$false
     }
     else
     {
        Write-Host "VMware tools detected, attempting gracefull shutdown $VM" -Foregroundcolor Green
-       Set-VM -Description "$VMDescription - Graceful Shutdown" -confirm:$false | Shutdown-VMGuest $VM -Confirm:$false
+       Set-VM $VM -Description "$VMDescription - Graceful Shutdown" -confirm:$false
+       Shutdown-VMGuest $VM -Confirm:$false
     }   
 }
 
 # Add logic that waits x amount of time after graceful shutdown, rescans and does power off?
-
+# Example in https://github.com/voletri/PowerCLI-1/blob/master/Power-Off-VMs.ps1 line 109
 
 # Get all hosts
 #$ESXiHost = Get-VMHost
