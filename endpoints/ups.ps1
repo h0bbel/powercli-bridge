@@ -6,9 +6,7 @@ Write-Host "$endpoint version:$version UPS Shutdown event triggered - Running"
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
-
-# Define vCenter Server details
-# Could this be included from external source?
+$vCName = "vc01" # Must be defined somwhere / Define vCenter Server details
 
 $vCenterServer = "vc01.explabs.badunicorn.no"
 $Username = "administrator@vsphere.local"
@@ -56,8 +54,10 @@ catch {
 
 # For each loop VMware tools present or not?
 
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" # Grab all VMs except vCLS
-Write-Host "Discovered these powered on VMs: $VMs" -Foregroundcolor Green
+#$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*"  # Grab all VMs except vCLS
+
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName} # Works! Excludes vCenter!
+Write-Host "Discovered these powered on VMs: $VMs" -Foregroundcolor Green 
 
 ForEach ( $VM in $VMs ) 
 {
@@ -80,6 +80,7 @@ ForEach ( $VM in $VMs )
 
 # Add logic that waits x amount of time after graceful shutdown, rescans and does power off?
 # Example in https://github.com/voletri/PowerCLI-1/blob/master/Power-Off-VMs.ps1 line 109
+# Once that loop has completed, eg the vm array is empty, shut down vCname!
 
 # Get all hosts
 #$ESXiHost = Get-VMHost
