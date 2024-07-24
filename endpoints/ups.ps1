@@ -51,14 +51,32 @@ catch {
 #       This also overwrites the notes field it does not retain existing notes if any.
 #       Would it be better to create a logfile instead?
 
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" | Set-VM -Description $VMDescription -confirm:$false | Stop-VM -Confirm:$false
-Write-Host "Discovered these powered on VMs: $VMs - Shutting down"
+#$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" | Set-VM -Description $VMDescription -confirm:$false | Stop-VM -Confirm:$false
+#Write-Host "Discovered these powered on VMs: $VMs - Shutting down"
 
+# For each loop VMware tools present or not?
 
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object -Property Name -NotLike "vCLS*" 
+Write-Host "Discovered these powered on VMs: $VMs" -Foregroundcolor Green
 
+ForEach ( $VM in $VMs ) 
+{
+    Write-Host "Processing $VM ...." -ForegroundColor Green
+    Write-Host "Checking for VMware tools install" -Foregroundcolor Green
+    $VMinfo = get-view -Id $VM.ID
+    if ($VMinfo.config.Tools.ToolsVersion -eq 0)
+    {
+        Write-Host "No VMware tools detected in $VM, hard power off" -ForegroundColor Red
+        Set-VM -Description "$VMDescription - Hard Shutdown" -confirm:$false | Stop-VM $VM -confirm:$false
+    }
+    else
+    {
+       Write-Host "VMware tools detected, attempting gracefull shutdown $VM" -Foregroundcolor Green
+       Set-VM -Description "$VMDescription - Graceful Shutdown" -confirm:$false | Shutdown-VMGuest $VM -Confirm:$false
+    }   
+}
 
 # Add logic that waits x amount of time after graceful shutdown, rescans and does power off?
-# Shutdown-VMGuest/Stop-VM doesn't work without VMware tools
 
 
 # Get all hosts
