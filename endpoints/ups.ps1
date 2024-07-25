@@ -44,13 +44,15 @@ Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false
 
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName} # Works! Excludes vCenter!
+# Exclude ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
+
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
 Write-Host "4: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
 
 ForEach ( $VM in $VMs ) 
 {
     Write-Host "   Processing <$VM>" -ForegroundColor Green
-    Write-Host "      Checking for VMware tools install" -Foregroundcolor Green
+    Write-Host "      Checking for VMware Tools" -Foregroundcolor Green
     $VMinfo = get-view -Id $VM.ID
     if ($VMinfo.config.Tools.ToolsVersion -eq 0)
     {
@@ -70,11 +72,28 @@ ForEach ( $VM in $VMs )
 # Example in https://github.com/voletri/PowerCLI-1/blob/master/Power-Off-VMs.ps1 line 109
 # Once that loop has completed, eg the vm array is empty, shut down vCName!
 
+# Second Pass Running VMs
+Write-Host "4.5: Checking running VMs second pass (waiting)" -Foregroundcolor Green
+
+Start-Sleep -Seconds 45 # Wait a bit before running second pass.
+
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName}  # Works! Excludes vCenter!
+
+Write-Host "      These VMs are still powered on: <$VMs>" -Foregroundcolor Yellow
+ForEach ( $VM in $VMs ) 
+{
+    Set-VM $VM -Description "$VMDescription - Hard Shutdown" -confirm:$false
+    Stop-VM $VM -confirm:$false
+    Write-Host "      Hard Shutdown of <$VM> performed" -ForegroundColor Red
+}
+
+# TODO? Run once more and ensure $VM is empty?
+
 # Maintenance mode
 ## Start-Job to make script continue while waiting for maintenance mode to continue
 ## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
 
-Write-Host "5: Entering Maintenance mode" -Foregroundcolor Green
+Write-Host "5: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $MaintenanceMode = {
     param(
@@ -85,9 +104,11 @@ $MaintenanceMode = {
     Connect-VIServer -Server $Server -Session $SessionId
     $ESXiHosts = Get-VMHost
     ForEach ( $ESXiHost in $ESXiHosts )
-    {
-        Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
-    }
+        {
+            Write-Host "   Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Green # Does not get printed anywhere.
+            Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
+            
+        }
     }
 
     $MaintenanceModeJob = @{
@@ -96,7 +117,7 @@ $MaintenanceMode = {
     }
     Start-Job @MaintenanceModeJob
 
-## The Sleep is required for MaintenanceMode to kick in - Tweak value? 30 seems OK
+## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
 Start-Sleep -Seconds 30
 
 # Shut down vCenter goes here.
