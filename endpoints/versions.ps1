@@ -28,7 +28,7 @@ catch {
     exit
 }
 
-$vCenterVersion = $Global:DefaultVIServers #| select Name, Version, Build
+$vCenterVersion = $Global:DefaultVIServers | select Name, Version, Build
 Write-Host "vCenter version: $vCenterVersion"
 
 $ESXiHosts = Get-VMHost

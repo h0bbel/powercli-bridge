@@ -11,6 +11,11 @@
 #       Easiest to use JWT? https://pode.readthedocs.io/en/latest/Tutorials/Authentication/Methods/JWT/#parse-jwt
 #   How to handle vCenter shutdown and then shutdown hosts?
 #   Look into tasks? Perhaps a better way to run async? (eg. no timeout issues)
+#   Output from scripts not until end... any way to force it to return early?
+
+# Issues:
+#   Configured timeout value in server1.psd - Did not help?
+
 
 # References:
 #   https://bjornpeters.com/powershell/create-your-first-basic-api-in-powershell-using-pode/
@@ -19,15 +24,19 @@
 #   https://blog.mwpreston.net/2012/08/07/practise-makes-perfect-more-powercli-apc-powerchute-network-shutdown-goodness-now-with-power-on/
 #   https://polarclouds.co.uk/esxi-rpi-ups-pt3/
 #   
-Write-Host "$MyInvocation.CommandOrigin"
+
+# Set PowerCLI Configuration silently
+
+Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false | Out-Null
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 
 #Start Pode Server
-Start-PodeServer -EnablePool Tasks {
+Start-PodeServer {
 
     #Attach port 8085 to the local machine address and use HTTP protocol
     Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
 
-    # Auth test
+    # Auth test - Needs cleanup. Check API key from config file instead?
 
     # setup apikey authentication to validate a user
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
@@ -52,9 +61,6 @@ Start-PodeServer -EnablePool Tasks {
         return $null
     }
     
-    # Tasks
-    #Add-PodeTask -Name 'upst' -FilePath "$PSScriptRoot\endpoints\upst.ps1"
-
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
 
@@ -65,27 +71,20 @@ Start-PodeServer -EnablePool Tasks {
     #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
 
     Add-PodeRoute -Method Get -Path '/v1/version' -Authentication 'Authenticate' -ScriptBlock {
-        $stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
+        #$stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
     }
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
-        $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
+       # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     }
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
 
-    # Autoruns again...
-    #Add-PodeRoute -Method Get -Path '/v1/vmtools/upst' -Authentication 'Authenticate' -ScriptBlock {
-    #    $task = Invoke-PodeTask -Name 'upst'
-    #    Write-PodeJsonResponse -Value @{ "success" = "true";"message"= "upst task"}
-    #}
-
     Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
-        $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
+        # $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
     }
-
 
     # Create endpoints dynamically for all .ps1 files in $FolderPath
     #$FolderPath = "endpoints"
