@@ -1,16 +1,15 @@
 $endpoint = "UPS Shutdown"
 $version = "0.1"
 Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint version:$version";"message"= "NUT/UPS initiated shutdown started."}
-Write-Host "$endpoint version:$version UPS Shutdown event triggered - Running"
+Write-Host "$endpoint version:$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
 
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
-$vCName = "vc01" # Must be defined somwhere / Define vCenter Server VM name details
 
-$vCenterServer = "vc01.explabs.badunicorn.no"
-$Username = "administrator@vsphere.local"
-$Password = "Pronet2012!"
+
+# Dot Source the vSphereEnv.ps1
+. $PSScriptRoot\config\vSphereEnv.ps1
 
 #Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP $false -Confirm:$false
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
@@ -18,7 +17,7 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out
 # Connect to vCenter Server
 try {
     Connect-VIServer -Server $vCenterServer -User $Username -Password $Password -ErrorAction Stop
-    Write-Host "Connected to vCenter Server $vCenterServer successfully."
+    Write-Host "Connected to vCenter Server $vCenterServer successfully." -Foregroundcolor Green
 }
 catch {
     Write-Host "Failed to connect to vCenter Server: $($_.Exception.Message)" -ForegroundColor Red
@@ -48,11 +47,11 @@ catch {
 # Change DRS Automation level to partially automated...
 ## NOTE: If DRS is not enabled, this sets it... needs a way to check
 
-Write-Host "Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor green
+Write-Host "Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Green
 Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
 
 # Change the HA Level
-Write-Host "Disabling HA on the cluster..." -Foregroundcolor green
+Write-Host "Disabling HA on the cluster..." -Foregroundcolor Green
 Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
 
 
@@ -73,7 +72,7 @@ ForEach ( $VM in $VMs )
     }
     else
     {
-       Write-Host "VMware tools detected, attempting gracefull shutdown $VM" -Foregroundcolor Green
+       Write-Host "VMware tools detected, attempting graceful shutdown of $VM" -Foregroundcolor Green
        Set-VM $VM -Description "$VMDescription - Graceful Shutdown" -confirm:$false
        Shutdown-VMGuest $VM -Confirm:$false
     }   
@@ -91,7 +90,7 @@ ForEach ( $VM in $VMs )
 ## Start-Job to make script continue while waiting for maintenance mode to continue
 ## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
 
-Write-Host "Entering Maintenance mode ..."
+Write-Host "Entering Maintenance mode ..." -Foregroundcolor Green
 
 $MaintenanceMode = {
     param(
@@ -122,13 +121,13 @@ Start-Sleep -Seconds 30
 # Hard shutdown right now (the VM is fake)
 # Logic problem: Maintenance mode wont trigger on the host the VC is on, since the VC is still running.
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
-Write-Host "Shutting down $vCenterServer  ..."
+Write-Host "Shutting down $vCenterServer  ..." -Foregroundcolor Green
 
 # Set-VM $vCName -Description "$VMDescription - Hard Shutdown" -confirm:$false
 Stop-VM $vCName -confirm:$false
 
 # Completed 
 ## Remove disconnect? Not needed when vCenter is actually shut down prior
-Write-Host "Disconnecting from $vCenterServer"
+Write-Host "Disconnecting from $vCenterServer" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServer -Force -Confirm:$false
-Write-Host "All defined UPS shutdown tasks have run, task completed."
+Write-Host "All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
