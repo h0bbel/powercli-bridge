@@ -10,6 +10,7 @@
 #   Authentication / Secrets
 #       Easiest to use JWT? https://pode.readthedocs.io/en/latest/Tutorials/Authentication/Methods/JWT/#parse-jwt
 #   How to handle vCenter shutdown and then shutdown hosts?
+#   Look into tasks? Perhaps a better way to run async? (eg. no timeout issues)
 
 # References:
 #   https://bjornpeters.com/powershell/create-your-first-basic-api-in-powershell-using-pode/
@@ -21,10 +22,7 @@
 Write-Host "$MyInvocation.CommandOrigin"
 
 #Start Pode Server
-Start-PodeServer {
-
-
-
+Start-PodeServer -EnablePool Tasks {
 
     #Attach port 8085 to the local machine address and use HTTP protocol
     Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
@@ -54,6 +52,9 @@ Start-PodeServer {
         return $null
     }
     
+    # Tasks
+    #Add-PodeTask -Name 'upst' -FilePath "$PSScriptRoot\endpoints\upst.ps1"
+
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
 
@@ -74,6 +75,12 @@ Start-PodeServer {
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
+
+    # Autoruns again...
+    #Add-PodeRoute -Method Get -Path '/v1/vmtools/upst' -Authentication 'Authenticate' -ScriptBlock {
+    #    $task = Invoke-PodeTask -Name 'upst'
+    #    Write-PodeJsonResponse -Value @{ "success" = "true";"message"= "upst task"}
+    #}
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
