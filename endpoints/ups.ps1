@@ -6,7 +6,7 @@ Write-Host "$endpoint version:$version UPS Shutdown event triggered - Running"
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
-$vCName = "vc01" # Must be defined somwhere / Define vCenter Server details
+$vCName = "vc01" # Must be defined somwhere / Define vCenter Server VM name details
 
 $vCenterServer = "vc01.explabs.badunicorn.no"
 $Username = "administrator@vsphere.local"
@@ -42,11 +42,21 @@ catch {
 ## TODO
 ### What about vSAN? Add check and proper shutdown?
 ### Maintenance mode?
+### DRS?
 
-# For each loop VMware tools present or not?
+
+# Change DRS Automation level to partially automated...
+## NOTE: If DRS is not enabled, this sets it... needs a way to check
+
+Write-Host "Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor green
+Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
+
+# Change the HA Level
+Write-Host "Disabling HA on the cluster..." -Foregroundcolor green
+Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
+
+
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
-
-
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName} # Works! Excludes vCenter!
 Write-Host "Discovered these powered on VMs: $VMs" -Foregroundcolor Green 
 
@@ -73,11 +83,52 @@ ForEach ( $VM in $VMs )
 # Example in https://github.com/voletri/PowerCLI-1/blob/master/Power-Off-VMs.ps1 line 109
 # Once that loop has completed, eg the vm array is empty, shut down vCname!
 
+# Maintenance mode
 # Get all hosts
-#$ESXiHost = Get-VMHost
 #Write-Host "Found ESXi Hosts:" $ESXiHost
 
-# Completed
+
+## Start-Job to make script continue while waiting for maintenance mode to continue
+## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
+
+Write-Host "Entering Maintenance mode ..."
+
+$MaintenanceMode = {
+    param(
+    [string]$Server,
+    [string]$SessionId
+    )
+    Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
+    Connect-VIServer -Server $Server -Session $SessionId
+    $ESXiHosts = Get-VMHost
+    ForEach ( $ESXiHost in $ESXiHosts )
+    {
+        Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
+    }
+    }
+
+    $MaintenanceModeJob = @{
+    ScriptBlock = $MaintenanceMode
+    ArgumentList = $global:DefaultVIServer.Name, $global:DefaultVIServer.SessionId
+    }
+    Start-Job @MaintenanceModeJob
+
+
+
+## The Sleep is required for MaintenanceMode to kick in - Tweak value? 30 seems OK
+Start-Sleep -Seconds 30
+
+# Shut down vCenter goes here.
+# Hard shutdown right now (the VM is fake)
+# Logic problem: Maintenance mode wont trigger on the host the VC is on, since the VC is still running.
+# Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
+Write-Host "Shutting down $vCenterServer  ..."
+
+# Set-VM $vCName -Description "$VMDescription - Hard Shutdown" -confirm:$false
+Stop-VM $vCName -confirm:$false
+
+# Completed 
+## Remove disconnect? Not needed when vCenter is actually shut down prior
 Write-Host "Disconnecting from $vCenterServer"
 Disconnect-VIServer -Server $vCenterServer -Force -Confirm:$false
 Write-Host "All defined UPS shutdown tasks have run, task completed."

@@ -28,15 +28,17 @@ catch {
     exit
 }
 
-$vCenterVersion = $Global:DefaultVIServers | select Name, Version, Build
+$vCenterVersion = $Global:DefaultVIServers #| select Name, Version, Build
 Write-Host "vCenter version: $vCenterVersion"
 
-$ESXiHosts = Get-VMHost | Select-Object name
+$ESXiHosts = Get-VMHost
 
 ForEach ( $ESXiHost in $ESXiHosts )
 {
     # logic missing
+    Write-Host "Processing $ESXiHost ...." -ForegroundColor Green
 }
+
 
 
 Disconnect-VIServer * -Confirm:$false
