@@ -33,8 +33,8 @@ Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | O
 
 
 # Use PsEnv to read local .env file
-Import-Module Set-PsEnv
-Set-PsEnv # loads from the local .env file
+#Import-Module Set-PsEnv
+#Set-PsEnv # loads from the local .env file
 $Env:X_PODE_API_KEY_TEST
 
 #Write-Host "Environment variable:" $env:X_PODE_API_KEY
