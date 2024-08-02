@@ -57,8 +57,8 @@ Start-PodeServer {
             }
         }
 
-        # authentication failed
-        Write-Host "Autentication failed. Reason: API Key from header invalid:" $key "X_PODE_API_KEY:" $X_PODE_API_KEY
+        # authentication failed - Not sure why returning json here does not work.
+        Write-Host "Autentication failed. Reason: X-API-KEY from header invalid."
         return $null
     }
     
@@ -84,7 +84,6 @@ Start-PodeServer {
     #Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
     #    Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
     #}
-
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
          & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
