@@ -86,6 +86,11 @@ Start-PodeServer {
     #Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
     #   # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     #}
+    
+    Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
+        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY_TEST }
+    }
+
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
