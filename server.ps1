@@ -32,6 +32,13 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out
 Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
 
 
+# Use PsEnv to read local .env file
+Import-Module Set-PsEnv
+Set-PsEnv # loads from the local .env file
+$Env:X_PODE_API_KEY_TEST
+
+#Write-Host "Environment variable:" $env:X_PODE_API_KEY
+
 #Start Pode Server
 Start-PodeServer {
 
@@ -44,8 +51,8 @@ Start-PodeServer {
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
         param($key)
         
-        $X_PODE_API_KEY = '123456' # Should be changed to a ENV variable or some other secret.
-        
+        #$X_PODE_API_KEY = '123456' # Should be changed to a ENV variable or some other secret.
+        $X_PODE_API_KEY = $env:X_PODE_API_KEY
         #Write-Host "PODEAPIKEY:" $PODEAPIKEY
         # here you'd check a real storage, this is just for example
         if ($key -eq $X_PODE_API_KEY) {
