@@ -31,11 +31,7 @@ Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false 
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
 
-
-# Use PsEnv to read local .env file
-#Import-Module Set-PsEnv
-#Set-PsEnv # loads from the local .env file
-$Env:X_PODE_API_KEY
+#$Env:X_PODE_API_KEY
 
 #Write-Host "Environment variable:" $env:X_PODE_API_KEY
 
@@ -51,16 +47,12 @@ Start-PodeServer {
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
         param($key)
         
-        #$X_PODE_API_KEY = '123456' # Should be changed to a ENV variable or some other secret.
         $X_PODE_API_KEY = $env:X_PODE_API_KEY
-        #Write-Host "PODEAPIKEY:" $PODEAPIKEY
-        # here you'd check a real storage, this is just for example
+
         if ($key -eq $X_PODE_API_KEY) {
             return @{
                 User = @{
-                    'ID' =''
-                    #'Name' = 'Morty'
-                    #'Type' = 'Human'
+                    'ID' ='Authorized'
                 }
             }
         }
@@ -70,6 +62,8 @@ Start-PodeServer {
         return $null
     }
     
+    ## TODO: Cleanup
+
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
 
@@ -87,13 +81,13 @@ Start-PodeServer {
     #   # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
     #}
     
-    Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
-        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
-    }
+    #Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
+    #    Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
+    #}
 
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
-        $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
+         & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
 
     #Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
