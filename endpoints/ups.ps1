@@ -16,9 +16,19 @@ $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"
 
 
 # Dot Source the vSphereEnv.ps1 file
-. $PSScriptRoot\config\vSphereEnv.ps1
+# Removed, moving to environment variables
+#. $PSScriptRoot\config\vSphereEnv.ps1
 
-#Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP $false -Confirm:$false
+# Grab config from environment variables
+# Rename variables!
+
+$vCName = $Env:vCName
+$vCenterServer = $Env:vCenterServer
+$Username = $Env:Username
+$Password = $Env:Password
+$X_PODE_API_KEY = $Env:X_PODE_API_KEY
+
+# Move to container config?
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 
 # Connect to vCenter Server

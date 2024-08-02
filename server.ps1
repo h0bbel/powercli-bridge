@@ -35,7 +35,7 @@ Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | O
 # Use PsEnv to read local .env file
 #Import-Module Set-PsEnv
 #Set-PsEnv # loads from the local .env file
-$Env:X_PODE_API_KEY_TEST
+$Env:X_PODE_API_KEY
 
 #Write-Host "Environment variable:" $env:X_PODE_API_KEY
 
@@ -88,7 +88,7 @@ Start-PodeServer {
     #}
     
     Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
-        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY_TEST }
+        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
     }
 
 

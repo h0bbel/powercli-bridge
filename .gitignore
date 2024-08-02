@@ -2,3 +2,5 @@
 .DS_Store
 endpoints/config/vSphereEnv.ps1
 .env
+setenv.bat
+setenv.ps1
