@@ -51,7 +51,7 @@ Start-PodeServer {
         if ($key -eq $X_PODE_API_KEY) {
             return @{
                 User = @{
-                    'ID' ='M0R7Y302'
+                    'ID' =''
                     #'Name' = 'Morty'
                     #'Type' = 'Human'
                 }
@@ -72,21 +72,21 @@ Start-PodeServer {
     # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
     #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
 
-    Add-PodeRoute -Method Get -Path '/v1/version' -Authentication 'Authenticate' -ScriptBlock {
-        #$stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
-    }
+    #Add-PodeRoute -Method Get -Path '/v1/version' -Authentication 'Authenticate' -ScriptBlock {
+    #    $stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
+    #}
 
-    Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
-       # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
-    }
+    #Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
+    #   # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
+    #}
 
     Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
         $stuff = & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
     }
 
-    Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
-        # $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
-    }
+    #Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
+    #    # $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
+    #}
 
     # Create endpoints dynamically for all .ps1 files in $FolderPath
     #$FolderPath = "endpoints"
