@@ -9,6 +9,6 @@ RUN pwsh -command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Truste
 RUN pwsh -command "Install-Module VMware.PowerCLI -Scope AllUsers"
 RUN pwsh -command "Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP \$false -Confirm:\$false"
 RUN pwsh -command "Install-Module -Name Pode -Scope AllUsers"
-COPY powercli-bridge /usr/local/bin/powercli-bridge
+COPY * /usr/local/bin/powercli-bridge
 EXPOSE 8085
 CMD ["/usr/bin/pwsh", "/usr/local/bin/powercli-bridge/server.ps1"]
