@@ -86,7 +86,7 @@ ForEach ( $VM in $VMs )
 # Second Pass Running VMs
 Write-Host "4.5: Checking running VMs second pass (waiting)" -Foregroundcolor Green
 
-Start-Sleep -Seconds 45 # Wait a bit before running second pass.
+Start-Sleep -Seconds 45 # Wait a bit before running second pass. TODO: Check if there are still VMs, if not - don't wait?
 
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName}  # Works! Excludes vCenter!
 
@@ -150,7 +150,7 @@ Disconnect-VIServer -Server $vCenterServer -Force -Confirm:$false
 $processTimer.Stop()
 $ts = $processTimer.Elapsed
 $elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seconds, ($ts.Milliseconds / 10)
-Write-Host "All done - Elapsed Time $elapsedTime `r`n"
+Write-Host "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
 
 Write-Host "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
 Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
