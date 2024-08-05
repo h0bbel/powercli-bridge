@@ -85,8 +85,8 @@ Start-PodeServer {
     #    Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
     #}
 
-    Add-PodeRoute -Method Get -Path '/v1/vmtools/ups' -Authentication 'Authenticate' -ScriptBlock {
-         & "$PSScriptRoot\endpoints\ups.ps1"            # This is stupid. Needs to be renamed
+    Add-PodeRoute -Method Get -Path '/api/v1/ups/shutdown' -Authentication 'Authenticate' -ScriptBlock {
+         & "$PSScriptRoot\v1\ups\shutdown.ps1"           
     }
 
     #Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
