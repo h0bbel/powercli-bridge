@@ -7,8 +7,6 @@
 
 # Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
-
-
 $endpoint = "UPS Shutdown"
 $version = "0.1"
 Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
@@ -19,18 +17,17 @@ $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
 # Grab config from environment variables defined in .\shared\env.ps1
-Write-Host "Environment" -ForegroundColor Cyan
+#Write-Host "Environment" -ForegroundColor Cyan
 #. .\shared\env.ps1
+#. "$PSScriptRoot\shared\env.ps1"
+#Write-Host "vCenterUsername from env.ps1: $vCenterUsername"
 
-. "$PSScriptRoot\shared\env.ps1"
-Write-Host "$vCenterUsername"
+$vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
+$vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
+$vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
+$vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
 
- #$vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
-#$vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
-#$vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
-#$vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
-#
-#$X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
+$X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 
 # Connect to vCenter Server
 try {
@@ -39,14 +36,18 @@ try {
 }
 catch {
     Write-Host "1: Failed to connect to vCenter Server: <$vCenterServerFQDN> $($_.Exception.Message)" -ForegroundColor Red
-    Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to $vCenterServerFQDN";"timestamp"="$DateVar"}
+    Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to <$vCenterServerFQDN>";"timestamp"="$DateVar"}
     exit
 }
 
 # Change DRS Automation level to partially automated...
 ## NOTE: If DRS is not enabled, this sets it... needs a way to check
 
+$drsLevel = Get-Cluster * | Select-Object DRSAutomationLevel # debugging! We are getting somewhere.
+Write-Host "Debug: DRS Automation level: $drsLevel"
+
 Write-Host "2: Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Green
+
 Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
 
 # Change the HA Level
@@ -55,9 +56,9 @@ Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false
 
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
-# Exclude ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
+# Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
 
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
 Write-Host "4: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
 
 ForEach ( $VM in $VMs ) 
@@ -81,14 +82,14 @@ ForEach ( $VM in $VMs )
 
 # Add logic that waits x amount of time after graceful shutdown, rescans and does power off?
 # Example in https://github.com/voletri/PowerCLI-1/blob/master/Power-Off-VMs.ps1 line 109
-# Once that loop has completed, eg the vm array is empty, shut down vCName!
+# Once that loop has completed, eg the vm array is empty, shut down $vCenterVMName!
 
 # Second Pass Running VMs
 Write-Host "4.5: Checking running VMs second pass (waiting)" -Foregroundcolor Green
 
 Start-Sleep -Seconds 45 # Wait a bit before running second pass. TODO: Check if there are still VMs, if not - don't wait?
 
-$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCName}  # Works! Excludes vCenter!
+$VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName}  # Works! Excludes vCenter!
 
 Write-Host "      These VMs are still powered on: <$VMs>" -Foregroundcolor Yellow
 ForEach ( $VM in $VMs ) 
@@ -136,15 +137,13 @@ Start-Sleep -Seconds 30
 # Logic problem: Maintenance mode wont trigger on the host the VC is on, since the VC is still running.
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
-Write-Host "6: Shutting down <$vCenterServer>" -Foregroundcolor Green
-
-# Set-VM $vCName -Description "$VMDescription - Hard Shutdown" -confirm:$false
-Stop-VM $vCName -confirm:$false
+Write-Host "6: Shutting down <$vCenterVMName>" -Foregroundcolor Green
+Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
 ## Remove disconnect? Not needed when vCenter is actually shut down prior
-Write-Host "7: Disconnecting from <$vCenterServer>" -Foregroundcolor Green
-Disconnect-VIServer -Server $vCenterServer -Force -Confirm:$false
+Write-Host "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
+Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 #Timer
 $processTimer.Stop()
