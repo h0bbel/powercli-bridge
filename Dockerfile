@@ -8,6 +8,7 @@ RUN tdnf -y install powershell
 RUN pwsh -command "Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted"
 RUN pwsh -command "Install-Module VMware.PowerCLI -Scope AllUsers"
 RUN pwsh -command "Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP \$false -Confirm:\$false"
+RUN pwsh -command "Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:\$false | Out-Null"
 RUN pwsh -command "Install-Module -Name Pode -Scope AllUsers"
 COPY * /usr/local/bin/powercli-bridge
 EXPOSE 8085
