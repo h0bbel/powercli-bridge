@@ -3,8 +3,7 @@
 ### DRS/HA - Check value before setting DRS partially automated?
 ### Cycle through VMs again before doing host maintenance mode (wait loop) in case there are still VMs running
 ### Logic problem: Maintenance mode? Find out where vCenter is, and then wait with that host?
-### Rename variables.
-
+### Numbering in output, is there a better way to do it?
 
 # Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -20,25 +19,13 @@ $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
 # Grab config from environment variables
-# Rename variables!
-# Move to include file instead, so that this is not duplicated?
 
-$vCName = $Env:vCName                               # OLD
 $vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
-
-$vCenterServer = $Env:vCenterServer                 # OLD
 $vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
-
-$Username = $Env:Username                           # OLD
 $vCenterUsername = $Env:vCenterUsername             # vCenter username, ex administrator@vsphere.locsal
-
-$Password = $Env:Password                           # OLD
 $vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
 
 $X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
-
-# Move to container config?
-Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 
 # Connect to vCenter Server
 try {
