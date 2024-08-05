@@ -29,12 +29,12 @@ $X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 
 # Connect to vCenter Server
 try {
-    Connect-VIServer -Server $vCenterServer -User $Username -Password $Password -ErrorAction Stop
-    Write-Host "1: Connected to vCenter Server <$vCenterServer> successfully." -Foregroundcolor Green
+    Connect-VIServer -Server $vCenterServerFQDN -User $vCenterUsername -Password $vCenterPassword -ErrorAction Stop
+    Write-Host "1: Connected to vCenter Server <$vCenterServerFQDN> successfully." -Foregroundcolor Green
 }
 catch {
-    Write-Host "1: Failed to connect to vCenter Server: <$vCenterServer> $($_.Exception.Message)" -ForegroundColor Red
-    Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to $vCenterServer";"timestamp"="$DateVar"}
+    Write-Host "1: Failed to connect to vCenter Server: <$vCenterServerFQDN> $($_.Exception.Message)" -ForegroundColor Red
+    Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to $vCenterServerFQDN";"timestamp"="$DateVar"}
     exit
 }
 
