@@ -21,6 +21,7 @@ $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"
 
 # Grab config from environment variables
 # Rename variables!
+# Move to include file instead, so that this is not duplicated?
 
 $vCName = $Env:vCName                               # OLD
 $vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
@@ -34,7 +35,7 @@ $vCenterUsername = $Env:vCenterUsername             # vCenter username, ex admin
 $Password = $Env:Password                           # OLD
 $vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
 
-$X_PODE_API_KEY = $Env:X_PODE_API_KEY
+$X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 
 # Move to container config?
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
