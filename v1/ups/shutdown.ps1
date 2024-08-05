@@ -40,9 +40,15 @@ catch {
     exit
 }
 
+# Get Cluster Data
+$cluster = Get-Cluster * 
+
+
+# Check if vSAN is enabled
+
+
 # Change DRS Automation level to partially automated if required
 
-$cluster = Get-Cluster * # debugging! We are getting somewhere. $drslevel.DrsAutomationLevel contains status
 $DRSLevel = $cluster.DrsAutomationLevel
 if ($DRSLevel -eq 'FullyAutomated')
     {
