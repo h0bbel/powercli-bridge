@@ -2,7 +2,13 @@
 ### What about vSAN? Add check and proper shutdown? https://core.vmware.com/blog/automation-improvements-using-powercli-131-vsan-8-u1
 ### DRS/HA - Check value before setting DRS partially automated?
 ### Cycle through VMs again before doing host maintenance mode (wait loop) in case there are still VMs running
-### What about timeout issues with Pode? Seems like timeouts are a Postman issue, curl handles it.
+### Logic problem: Maintenance mode? Find out where vCenter is, and then wait with that host?
+### Rename variables.
+
+
+# Timer
+
+$processTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
 
 $endpoint = "UPS Shutdown"
@@ -13,11 +19,6 @@ Write-Host "$endpoint v$version UPS Shutdown event triggered - Running" -Foregro
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
-
-
-# Dot Source the vSphereEnv.ps1 file
-# Removed, moving to environment variables
-#. $PSScriptRoot\config\vSphereEnv.ps1
 
 # Grab config from environment variables
 # Rename variables!
@@ -134,7 +135,6 @@ Start-Sleep -Seconds 30
 # Hard shutdown right now (the VM is fake)
 # Logic problem: Maintenance mode wont trigger on the host the VC is on, since the VC is still running.
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
-# Logic problem 3: Maintenance mode? Find out where vCenter is, and then wait with that host?
 
 Write-Host "6: Shutting down <$vCenterServer>" -Foregroundcolor Green
 
@@ -145,6 +145,13 @@ Stop-VM $vCName -confirm:$false
 ## Remove disconnect? Not needed when vCenter is actually shut down prior
 Write-Host "7: Disconnecting from <$vCenterServer>" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServer -Force -Confirm:$false
+
+#Timer
+$processTimer.Stop()
+$ts = $processTimer.Elapsed
+$elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seconds, ($ts.Milliseconds / 10)
+Write-Host "All done - Elapsed Time $elapsedTime `r`n"
+
 Write-Host "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
 Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
-Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown started."}
+Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown completed in $elapsedTime."}
