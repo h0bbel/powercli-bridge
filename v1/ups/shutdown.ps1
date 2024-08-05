@@ -18,14 +18,19 @@ Write-Host "$endpoint v$version UPS Shutdown event triggered - Running" -Foregro
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
-# Grab config from environment variables
+# Grab config from environment variables defined in .\shared\env.ps1
+Write-Host "Environment" -ForegroundColor Cyan
+#. .\shared\env.ps1
 
-$vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
-$vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
-$vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
-$vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
+. "$PSScriptRoot\shared\env.ps1"
+Write-Host "$vCenterUsername"
 
-$X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
+ #$vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
+#$vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
+#$vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
+#$vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
+#
+#$X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 
 # Connect to vCenter Server
 try {
