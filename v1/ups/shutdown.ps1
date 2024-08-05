@@ -22,10 +22,18 @@ $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"
 # Grab config from environment variables
 # Rename variables!
 
-$vCName = $Env:vCName
-$vCenterServer = $Env:vCenterServer
-$Username = $Env:Username
-$Password = $Env:Password
+$vCName = $Env:vCName                               # OLD
+$vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
+
+$vCenterServer = $Env:vCenterServer                 # OLD
+$vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
+
+$Username = $Env:Username                           # OLD
+$vCenterUsername = $Env:vCenterUsername             # vCenter username, ex administrator@vsphere.locsal
+
+$Password = $Env:Password                           # OLD
+$vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
+
 $X_PODE_API_KEY = $Env:X_PODE_API_KEY
 
 # Move to container config?
