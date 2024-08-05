@@ -43,8 +43,25 @@ catch {
 # Get Cluster Data
 $cluster = Get-Cluster * 
 
-
 # Check if vSAN is enabled
+# Get-VsanClusterConfiguration | select *
+$vsanConfiguration = Get-VsanClusterConfiguration
+$vSANEnabled = $vsanConfiguration.VsanEnabled
+#Write-Host "vSAN Status: $vsanEnabled" -Foregroundcolor Blue
+
+if ($vSANEnabled -eq 'true')
+    {
+        Write-Host "2: vSAN Enabled" -Foregroundcolor Blue
+        # Logic for vSAN shutdown
+        # https://core.vmware.com/blog/automation-improvements-using-powercli-131-vsan-8-u1
+        # https://developer.broadcom.com/powercli/latest/vmware.vimautomation.storage/commands/stop-vsancluster
+    }
+
+else
+    {
+        Write-Host "2: vSAN is not enabled. Continuing without changes. " -Foregroundcolor Green
+    }
+
 
 
 # Change DRS Automation level to partially automated if required
@@ -160,7 +177,7 @@ Start-Sleep -Seconds 30
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-Write-Host "6: Shutting down vCentyer VM: <$vCenterVMName>" -Foregroundcolor Green
+Write-Host "6: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
