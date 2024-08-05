@@ -46,7 +46,7 @@ $cluster = Get-Cluster * # debugging! We are getting somewhere. $drslevel.DrsAut
 $DRSLevel = $cluster.DrsAutomationLevel
 if ($DRSLevel -eq 'FullyAutomated')
     {
-        Write-Host "2: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Green
+        Write-Host "2: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
     }
 
@@ -61,7 +61,7 @@ $HAStatus = $cluster.HAEnabled
 
 if ($HAStatus -eq 'True')
     {
-        Write-Host "3: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Green
+        Write-Host "3: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
     }
 
@@ -154,7 +154,7 @@ Start-Sleep -Seconds 30
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-Write-Host "6: Shutting down <$vCenterVMName>" -Foregroundcolor Green
+Write-Host "6: Shutting down vCentyer VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
