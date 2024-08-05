@@ -41,9 +41,7 @@ Start-PodeServer {
     #Attach port 8085 to the local machine address and use HTTP protocol
     Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
 
-    # Auth test - Needs cleanup. Check API key from config file instead?
-
-    # setup apikey authentication to validate a user
+    # Setup apikey authentication to validate a user
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
         param($key)
         
@@ -58,6 +56,7 @@ Start-PodeServer {
         }
 
         # authentication failed - Not sure why returning json here does not work.
+        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
         Write-Host "Autentication failed. Reason: X-API-KEY from header invalid."
         return $null
     }
