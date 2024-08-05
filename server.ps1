@@ -1,11 +1,7 @@
 # Notes
-#
-# Do not start server.ps1 directly, as it autoruns the endpoints
-# Seems like just doing pode start, instead of starting server.ps1, actually fixes that somehow.
-# Or does it? Seems to be OK now, so perhaps I did something very weird. 18.07.2024
 
 # TODO:
-#   All scripts should be located in /endpoints/, needs cleanup
+#   All scripts should be located in /v1/
 #   All scripts need a versioning scheme
 #   Authentication / Secrets
 #       Easiest to use JWT? https://pode.readthedocs.io/en/latest/Tutorials/Authentication/Methods/JWT/#parse-jwt
@@ -31,9 +27,6 @@ Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false 
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
 
-#$Env:X_PODE_API_KEY
-
-#Write-Host "Environment variable:" $env:X_PODE_API_KEY
 
 #Start Pode Server
 Start-PodeServer {
@@ -56,51 +49,13 @@ Start-PodeServer {
         }
 
         # authentication failed - Not sure why returning json here does not work.
-        Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
         Write-Host "Autentication failed. Reason: X-API-KEY from header invalid."
         return $null
     }
     
-    ## TODO: Cleanup
-
-    # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
-    #Add-PodeRoute -Method Get -Path '/ping' -FilePath './routes/pong.ps1'
-
-    # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
-    #Add-PodeRoute -Method Get -Path '/ups' -FilePath './routes/ups.ps1'
-
-    # Create route with script directly. Ref https://pode.readthedocs.io/en/latest/Tutorials/Routes/Overview/#parameters
-    #Add-PodeRoute -Method Get -Path '/vmtools/vsphere' -FilePath './routes/vsphere.ps1'
-
-    #Add-PodeRoute -Method Get -Path '/v1/version' -Authentication 'Authenticate' -ScriptBlock {
-    #    $stuff = & "$PSScriptRoot\endpoints\version.ps1"            # This is stupid. Needs to be renamed
-    #}
-
-    #Add-PodeRoute -Method Get -Path '/v1/vmtools/vsphere' -Authentication 'Authenticate' -ScriptBlock {
-    #   # $stuff = & "$PSScriptRoot\endpoints\vsphere.ps1"            # This is stupid. Needs to be renamed
-    #}
     
-    #Add-PodeRoute -Method Get -Path '/' -ScriptBlock {
-    #    Write-PodeJsonResponse -Value @{ 'value' = $Env:X_PODE_API_KEY} # This works!!! It grabs the env variable from the container. 
-    #}
-
     Add-PodeRoute -Method Get -Path '/api/v1/ups/shutdown' -Authentication 'Authenticate' -ScriptBlock {
          & "$PSScriptRoot\v1\ups\shutdown.ps1"           
     }
 
-    #Add-PodeRoute -Method Get -Path '/v1/vmtools/versions' -Authentication 'Authenticate' -ScriptBlock {
-    #    # $stuff = & "$PSScriptRoot\endpoints\versions.ps1"            # This is stupid. Needs to be renamed
-    #}
-
-    # Create endpoints dynamically for all .ps1 files in $FolderPath
-    #$FolderPath = "endpoints"
-    #$fileBaseNames = (Get-ChildItem $FolderPath\*.ps1).BaseName
-
-    #Iterate through Files in $fileBaseNames and create endpoints
-    #ForEach ($File in $fileBaseNames) {
-    #    Write-Host "Processing file: $($File)"
-    #    Write-Host "Endpoint:" "/endpoints/$File"
-    #    Write-Host "Endpoint local path:" "$PSScriptRoot/endpoints/$File"
-    #    Add-PodeRoute -Method Get -Path "/endpoints/$File" -FilePath "$PSScriptRoot/endpoints/$File.ps1"
-    #}
 }   
