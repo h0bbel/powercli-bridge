@@ -61,7 +61,7 @@ $HAStatus = $cluster.HAEnabled
 
 if ($HAStatus -eq 'True')
     {
-        Write-Host "3: HA Status is <$HAStatus>. Disabling HA on the cluster" -Foregroundcolor Green
+        Write-Host "3: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Green
         Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
     }
 
