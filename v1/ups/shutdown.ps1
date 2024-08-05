@@ -167,6 +167,10 @@ $ts = $processTimer.Elapsed
 $elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seconds, ($ts.Milliseconds / 10)
 Write-Host "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
 
+
+# TODO
+## Add info about HA/DRS_
+
 Write-Host "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
 Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
 Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown completed in $elapsedTime."}
