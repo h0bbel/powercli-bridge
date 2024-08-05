@@ -6,8 +6,7 @@
 ### Rename variables.
 
 
-# Timer
-
+# Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
 
