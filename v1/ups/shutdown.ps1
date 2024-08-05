@@ -40,19 +40,35 @@ catch {
     exit
 }
 
-# Change DRS Automation level to partially automated...
-## NOTE: If DRS is not enabled, this sets it... needs a way to check
+# Change DRS Automation level to partially automated if required
 
-$drsLevel = Get-Cluster * | Select-Object DRSAutomationLevel # debugging! We are getting somewhere.
-Write-Host "Debug: DRS Automation level: $drsLevel"
+$cluster = Get-Cluster * # debugging! We are getting somewhere. $drslevel.DrsAutomationLevel contains status
+$DRSLevel = $cluster.DrsAutomationLevel
+if ($DRSLevel -eq 'FullyAutomated')
+    {
+        Write-Host "2: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Green
+        Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
+    }
 
-Write-Host "2: Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Green
+else
+    {
+        Write-Host "2: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
+    }   
 
-Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
+# Change the HA status if required
 
-# Change the HA Level
-Write-Host "3: Disabling HA on the cluster" -Foregroundcolor Green
-Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
+$HAStatus = $cluster.HAEnabled
+
+if ($HAStatus -eq 'True')
+    {
+        Write-Host "3: HA Status is <$HAStatus>. Disabling HA on the cluster" -Foregroundcolor Green
+        Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
+    }
+
+else
+    {
+        Write-Host "3: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
+    }   
 
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
