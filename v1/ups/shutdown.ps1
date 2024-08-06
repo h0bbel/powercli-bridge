@@ -97,8 +97,7 @@ $clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
 $vCLSMode = (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
 # ABSENT = vCLS Disabled
 # SYSTEM_MANAGED = vCLS Enabled
-Write-Host "vCLS: $vCLSMode"
-if ($vCLSMode eq 'SYSTEM_MANAGED')
+if ($vCLSMode -eq 'SYSTEM_MANAGED')
     {
         Write-Host "X: vCLS Retreat Mode SYSTEM MANAGED detected, changed to ABSENT for proper shutdown/maintenance mode." -Foregroundcolor Blue
 
