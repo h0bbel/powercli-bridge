@@ -200,18 +200,16 @@ $MaintenanceMode = {
     )
     Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
     Connect-VIServer -Server $Server -Session $SessionId
-    $ESXiHosts = Get-VMHost #Original
-    #$ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne $vCHost} #Only loop through non VC hosts?
-
-    # TODO: Needs logic to put $vCHost into last place in $ESXiHosts or exclude and then run separately.
-    # No idea how to do that...
+    #$ESXiHosts = Get-VMHost #Original
+    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne $vCHost} #Only loop through non VC hosts?
 
     ForEach ( $ESXiHost in $ESXiHosts )
             {
                 Write-Host "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
                 
-            }
+            } 
+        }
         
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
 ## Move to an env variable for customization?
