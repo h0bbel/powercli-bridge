@@ -199,7 +199,6 @@ Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCe
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
                 
             } 
-        }
 
         
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
