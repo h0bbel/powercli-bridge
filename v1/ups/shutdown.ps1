@@ -213,7 +213,7 @@ Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCe
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
 Write-Host "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
-Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance
+Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
 Start-Sleep -Seconds 10
 
 #Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
