@@ -191,18 +191,8 @@ Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCe
 #    }
 #    Start-Job @MaintenanceModeJob
 
-    #$ESXiHosts = Get-VMHost #Original
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
-$MaintenanceMode = {
-    param(
-    [string]$Server,
-    [string]$SessionId
-    )
-    Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
-    Connect-VIServer -Server $Server -Session $SessionId
     #$ESXiHosts = Get-VMHost #Original
-    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne $vCHost} #Only loop through non VC hosts?
-
     ForEach ( $ESXiHost in $ESXiHosts )
             {
                 Write-Host "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
@@ -210,7 +200,7 @@ $MaintenanceMode = {
                 
             } 
         }
-    }
+
         
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
 ## Move to an env variable for customization?
