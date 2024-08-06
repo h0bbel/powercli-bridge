@@ -164,35 +164,7 @@ $vCVM = Get-VM -name $vCenterVMName
 $vCHost = $vCVM.VMHost
 Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
 
-#$MaintenanceMode = {
-#    param(
-#    [string]$Server,
-#    [string]$SessionId
-#    )
-#    Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
-#    Connect-VIServer -Server $Server -Session $SessionId
-#    #$ESXiHosts = Get-VMHost #Original
-#    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts? DOES NOT WORK!
-#    Write-Host $ESXiHosts
-#    # TODO: Needs logic to put $vCHost into last place in $ESXiHosts or exclude and then run separately.
-#    # No idea how to do that...
-
-#    ForEach ( $ESXiHost in $ESXiHosts )
-#        {
-#            Write-Host "   Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Green # Does not get printed anywhere.
-#            Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
-#            
-#        }
-#    }
-
-#    $MaintenanceModeJob = @{
-#    ScriptBlock = $MaintenanceMode
-#    ArgumentList = $global:DefaultVIServer.Name, $global:DefaultVIServer.SessionId
-#    }
-#    Start-Job @MaintenanceModeJob
-
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
-    #$ESXiHosts = Get-VMHost #Original
     ForEach ( $ESXiHost in $ESXiHosts )
             {
                 Write-Host "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
@@ -208,13 +180,11 @@ Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCe
 
 # Shut down vCenter goes here.
 # Hard shutdown right now (the VM is fake)
-# Logic problem: Maintenance mode wont trigger on the host the VC is on, since the VC is still running.
-# Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
-
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
+
 Write-Host "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
-Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
-Start-Sleep -Seconds 10
+#Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
+#Start-Sleep -Seconds 10
 
 #Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 # Idea to connect directly to the host and shut down the VM & enable maintmode?
@@ -235,13 +205,10 @@ Connect-VIServer -Server $vCHost -user root -password Pronet2012!
 Write-Host "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
-Write-Host "8.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
+Write-Host "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
 Set-VMHost -State Maintenance
 
 # Completed 
-## Remove disconnect? Not needed when vCenter is actually shut down prior
-#Write-Host "8: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
-#Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 #Timer
 $processTimer.Stop()
