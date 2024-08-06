@@ -70,13 +70,13 @@ else
 $DRSLevel = $cluster.DrsAutomationLevel
 if ($DRSLevel -eq 'FullyAutomated')
     {
-        Write-Host "2: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Blue
+        Write-Host "3: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
     }
 
 else
     {
-        Write-Host "2: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
+        Write-Host "3: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
     }   
 
 # Change the HA status if required
@@ -85,13 +85,13 @@ $HAStatus = $cluster.HAEnabled
 
 if ($HAStatus -eq 'True')
     {
-        Write-Host "3: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Blue
+        Write-Host "4: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
     }
 
 else
     {
-        Write-Host "3: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
+        Write-Host "4: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
     }   
 
 
@@ -99,7 +99,7 @@ else
 # Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
 
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
-Write-Host "4: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
+Write-Host "5: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
 
 ForEach ( $VM in $VMs ) 
 {
@@ -125,7 +125,7 @@ ForEach ( $VM in $VMs )
 # Once that loop has completed, eg the vm array is empty, shut down $vCenterVMName!
 
 # Second Pass Running VMs
-Write-Host "4.5: Checking running VMs second pass (waiting)" -Foregroundcolor Green
+Write-Host "5.1: Checking running VMs second pass (waiting)" -Foregroundcolor Green
 
 Start-Sleep -Seconds 45 # Wait a bit before running second pass. TODO: Check if there are still VMs, if not - don't wait?
 
@@ -145,7 +145,7 @@ ForEach ( $VM in $VMs )
 ## Start-Job to make script continue while waiting for maintenance mode to continue
 ## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
 
-Write-Host "5: ESXi Maintenance Mode" -Foregroundcolor Green
+Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $MaintenanceMode = {
     param(
@@ -178,12 +178,12 @@ Start-Sleep -Seconds 30
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-Write-Host "6: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
 ## Remove disconnect? Not needed when vCenter is actually shut down prior
-Write-Host "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
+Write-Host "8: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 #Timer
