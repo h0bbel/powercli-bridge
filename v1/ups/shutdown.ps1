@@ -17,10 +17,7 @@ $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
 # Grab config from environment variables defined in .\shared\env.ps1
-#Write-Host "Environment" -ForegroundColor Cyan
-#. .\shared\env.ps1
-#. "$PSScriptRoot\shared\env.ps1"
-#Write-Host "vCenterUsername from env.ps1: $vCenterUsername"
+# Move to dotsource included? for Re-use in other scripts?
 
 $vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
 $vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
@@ -47,7 +44,6 @@ $cluster = Get-Cluster *
 # Get-VsanClusterConfiguration | select *
 $vsanConfiguration = Get-VsanClusterConfiguration
 $vSANEnabled = $vsanConfiguration.VsanEnabled
-#Write-Host "vSAN Status: $vsanEnabled" -Foregroundcolor Blue
 
 if ($vSANEnabled -eq 'true')
     {
@@ -66,7 +62,6 @@ else
 
 
 # Change DRS Automation level to partially automated if required
-
 $DRSLevel = $cluster.DrsAutomationLevel
 if ($DRSLevel -eq 'FullyAutomated')
     {
@@ -80,7 +75,6 @@ else
     }   
 
 # Change the HA status if required
-
 $HAStatus = $cluster.HAEnabled
 
 if ($HAStatus -eq 'True')
@@ -97,7 +91,6 @@ else
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
 # Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
-
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
 Write-Host "5: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
 
@@ -144,7 +137,6 @@ ForEach ( $VM in $VMs )
 # Maintenance mode
 ## Start-Job to make script continue while waiting for maintenance mode to continue
 ## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
-
 Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName
@@ -207,10 +199,7 @@ $ts = $processTimer.Elapsed
 $elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seconds, ($ts.Milliseconds / 10)
 Write-Host "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
 
-
-# TODO
-## Add info about HA/DRS_
-
+#Done
 Write-Host "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
 Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
 Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown completed in $elapsedTime."}
