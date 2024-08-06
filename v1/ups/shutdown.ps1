@@ -55,6 +55,7 @@ if ($vSANEnabled -eq 'true')
         # Logic for vSAN shutdown
         # https://core.vmware.com/blog/automation-improvements-using-powercli-131-vsan-8-u1
         # https://developer.broadcom.com/powercli/latest/vmware.vimautomation.storage/commands/stop-vsancluster
+        # Is it that easy with vSAN? Just run stop-vsancluster??
     }
 
 else
