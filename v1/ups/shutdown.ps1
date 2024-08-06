@@ -181,11 +181,11 @@ Start-Sleep -Seconds 30
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-Write-Host "7: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
+Write-Host "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
 Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance
 Start-Sleep -Seconds 10
 
-Write-Host "7.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
