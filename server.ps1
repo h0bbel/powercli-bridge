@@ -52,7 +52,9 @@ Start-PodeServer {
         Write-Host "Autentication failed. Reason: X-API-KEY from header invalid."
         return $null
     }
-    
+
+    New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging -Levels Debug, Error, Warning, Informational, Verbose
+
     
     Add-PodeRoute -Method Get -Path '/api/v1/ups/shutdown' -Authentication 'Authenticate' -ScriptBlock {
          & "$PSScriptRoot\v1\ups\shutdown.ps1"           
