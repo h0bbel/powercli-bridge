@@ -147,6 +147,10 @@ ForEach ( $VM in $VMs )
 
 Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
+$vCVM = Get-VM -name $vCenterVMName
+$vCHost = $vCVM.VMHost
+Write-Host "6.1: Deferring Maintenance Mode, for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
+
 $MaintenanceMode = {
     param(
     [string]$Server,
@@ -154,7 +158,12 @@ $MaintenanceMode = {
     )
     Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
     Connect-VIServer -Server $Server -Session $SessionId
-    $ESXiHosts = Get-VMHost
+    #$ESXiHosts = Get-VMHost #Original
+    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne $vCHost} #Only loop through non VC hosts?
+
+    # TODO: Needs logic to put $vCHost into last place in $ESXiHosts or exclude and then run separately.
+    # No idea how to do that...
+
     ForEach ( $ESXiHost in $ESXiHosts )
         {
             Write-Host "   Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Green # Does not get printed anywhere.
@@ -170,6 +179,8 @@ $MaintenanceMode = {
     Start-Job @MaintenanceModeJob
 
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
+## Move to an env variable for customization?
+
 Start-Sleep -Seconds 30
 
 # Shut down vCenter goes here.
@@ -178,7 +189,11 @@ Start-Sleep -Seconds 30
 # Logic problem 2: Removed -Description "$VMDescription - Hard Shutdown" since you cant edit a VM when maintenance mode is trying to enable! Not possible to do this at this stage, if description is needed it needs to be done earlier.
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+Write-Host "7: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
+Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance
+Start-Sleep -Seconds 10
+
+Write-Host "7.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 # Completed 
