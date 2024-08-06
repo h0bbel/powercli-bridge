@@ -151,8 +151,8 @@ $MaintenanceMode = {
     Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
     Connect-VIServer -Server $Server -Session $SessionId
     #$ESXiHosts = Get-VMHost #Original
-    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne $vCHost} #Only loop through non VC hosts?
-
+    $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts? DOES NOT WORK!
+    Write-Host $ESXiHosts
     # TODO: Needs logic to put $vCHost into last place in $ESXiHosts or exclude and then run separately.
     # No idea how to do that...
 
@@ -182,11 +182,12 @@ Start-Sleep -Seconds 30
 
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
 Write-Host "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
-Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance
+#Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance
 Start-Sleep -Seconds 10
 
 Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
-Stop-VM $vCenterVMName -confirm:$false
+Stop-VM $vCenterVMName -confirm:$false # Should be Shutdown-VMGuest $vCenterVMName -Confirm:$false only Stop because of fake VC.
+
 
 # Completed 
 ## Remove disconnect? Not needed when vCenter is actually shut down prior
