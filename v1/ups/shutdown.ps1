@@ -88,6 +88,28 @@ else
         Write-Host "4: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
     }   
 
+# vCLS Retreat Mode to ensure proper shutdown
+# From https://williamlam.com/2023/09/easily-disable-vsphere-cluster-services-vcls-using-ui-api-in-vsphere-8-0-update-2.html
+
+$clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status.
+(Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
+$clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
+$vCLSMode = (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
+# ABSENT = vCLS Disabled
+# SYSTEM_MANAGED = vCLS Enabled
+Write-Host "vCLS: $vCLSMode"
+if ($vCLSMode eq 'SYSTEM_MANAGED')
+    {
+        Write-Host "X: vCLS Retreat Mode SYSTEM MANAGED detected, changed to ABSENT for proper shutdown/maintenance mode." -Foregroundcolor Blue
+
+        $clusterSystemVMSpec.DeploymentMode = "ABSENT"
+        $clusterSpec = New-Object VMware.Vim.ClusterConfigSpecEx
+        $clusterSpec.SystemVMsConfig = $clusterSystemVMSpec
+        $task = (Get-Cluster $clusterName).ExtensionData.ReconfigureComputeResource_Task($clusterSpec,$true)
+        $task1 = Get-Task -Id ("Task-$($task.value)")
+        $task1 | Wait-Task
+   }
+
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
 # Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
