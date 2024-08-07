@@ -23,17 +23,20 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 
 #### vSphere Related
 
-vCenterVMName       # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
-
-$vCenterServerFQDN  # vCenter FQDN name, used for the PowerCLI connection
-
-$vCenterUsername    # vCenter username, ex. <administrator@vsphere.local>
-
-$vCenterPassword    # $vCenterUsername Password
+| ENV Variable      | Description                                                                |
+| ----------------- | -------------------------------------------------------------------------- |
+| vCenterVMName     | vCenter VM name - used to exclude the vCenter VM in the shutdown procedure |
+| vCenterServerFQDN | vCenter FQDN name, used for the PowerCLI connection                        |
+| vCenterUsername   | vCenter username, ex. <administrator@vsphere.local>                        |
+| vCenterPassword   | vCenter password                                                           |
 
 #### PODE / REST API Related
 
-$X_PODE_API_KEY =   # API Key
+| ENV Variable    | Description |
+| --------------- | ----------- |
+| X_PODE_API_KEY | API Key     |
+
+`X_PODE_API_KEY ` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
 
 ## #Flowchart
 
