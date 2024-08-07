@@ -17,7 +17,7 @@ style E fill:#F3522F,stroke:#333,stroke-width:2px
     J --> L[Force];
     K --> M[Shut Down VM second pass];
     L --> M[Shut Down VM second pass];
-    M --> O[Force];
+    M --> O[Force Remaining VMs];
     O --> P[Check vCenter VM Host];
     P --> Q[Hosts Maintenance Mode];
     Q --> R[Connect vCenter Host];
