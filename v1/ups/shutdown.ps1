@@ -4,6 +4,7 @@
 ### Cycle through VMs again before doing host maintenance mode (wait loop) in case there are still VMs running
 ### Logic problem: Maintenance mode? Find out where vCenter is, and then wait with that host?
 ### Numbering in output, is there a better way to do it?
+### State: Record HA/DRS/vCLS mode in state as well!
 
 # Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -165,6 +166,36 @@ $vCVM = Get-VM -name $vCenterVMName
 $vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
+    # Begin State
+    # Store data in a state file, for usage later on for instance in a startup sequence.
+    # Does this just add data? Just remove the restore, and add that to the startup sequence seems like the best bet.
+
+Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Red
+
+    # Create the shared variable
+    # Need this to empty it out on subsequent runs?
+    # Set-PodeState -Name 'vCenterHost' -Value @{ 'values' = @(); } #| Out-Null
+
+    # attempt to re-initialise the previous state (will do nothing if the file doesn't exist)
+    # Do not need to restore it here, right?
+    # Restore-PodeState -Path './states/shutdown_state.json'
+
+ $timestamp = Get-Date
+
+    # Issue: It adds on subsequent runs.
+Lock-PodeObject -ScriptBlock {
+        #Set-PodeState -Name 'data' -Value @{ 'Name' = 'Rick Sanchez' } | Out-Null
+        # Delete previous state, as subsequent runs adds to it and not overwrites, at least for $vCHost for some reason?!
+        # We don't really need the previous state here, since we don't use it for anything.
+        
+    #Remove-PodeState -Name 'vCenterHost'
+    #Remove-PodeState -Name 'ExecutionTime'
+
+    Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
+    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$timestamp" } # | Out-Null
+    Save-PodeState -Path './states/shutdown_state.json'
+    }
+
 
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
     ForEach ( $ESXiHost in $ESXiHosts )
@@ -172,31 +203,6 @@ Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <
                 Write-Podehost "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
             } 
-
-
-    # Begin State
-    # Store data in a state file, for usage later on for instance in a startup sequence.
-    # Does this just add data? Just remove the restore, and add that to the startup sequence seems like the best bet.
-
-    Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Red
-
-    # Create the shared variable
-    #Set-PodeState -Name 'statedata' -Value @{ 'values' = @(); } #| Out-Null
-
-    # attempt to re-initialise the previous state (will do nothing if the file doesn't exist)
-    # Do not need to restore it here, right?
-    # Restore-PodeState -Path './states/shutdown_state.json'
-
-    $timestamp = Get-Date
-
-
-    Lock-PodeObject -ScriptBlock {
-        #Set-PodeState -Name 'data' -Value @{ 'Name' = 'Rick Sanchez' } | Out-Null
-        Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
-        Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$timestamp" } # | Out-Null
-        Save-PodeState -Path './states/shutdown_state.json'
-    }
-
 
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
 ## Move to an env variable for customization?
