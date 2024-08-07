@@ -185,6 +185,7 @@ Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <
 
     Lock-PodeObject -ScriptBlock {
         Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = '$vCHost' } #| Out-Null
+        Save-PodeState -Path './state.json'
     }
 
 
