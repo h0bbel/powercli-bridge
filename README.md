@@ -1,6 +1,36 @@
 # powercli-bridge
 
-## Flowchart
+HTTPS is now default, with a self signed cert.
+
+#### Example Usage
+
+``` shell
+curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
+--header 'X-API-KEY: 123456'
+```
+
+## Description
+
+Currently this connects to a vCenter, configures DRS/HA/vCLS for shutdown.
+Cycles through running VMs and shuts them down or alternately powers them off (hard)
+Then hosts that are not running the vCenter VM are put into Maintenance Mode, before it finally directly connects to the host running vCenter and places it in Maintenance Mode while shutting down vCenter.
+
+The ESXi host running vCenter is stored in a state file so that it can be picked up again by a future startup action.
+
+### Environment Variables Required
+
+#### vSphere Related
+
+vCenterVMName       # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
+$vCenterServerFQDN  # vCenter FQDN name, used for the PowerCLI connection
+$vCenterUsername    # vCenter username, ex. administrator@vsphere.local
+$vCenterPassword    # $vCenterUsername Password
+
+#### PODE / REST API Related
+
+$X_PODE_API_KEY =   # API Key
+
+## #Flowchart
 
 ```mermaid
 flowchart TD
