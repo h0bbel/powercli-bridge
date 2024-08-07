@@ -9,8 +9,8 @@
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
 $endpoint = "UPS Shutdown"
 $version = "0.1"
-Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
-Write-Host "$endpoint v$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
+Write-Podehost "----------------------------------------------------------------" -ForegroundColor Cyan
+Write-Podehost "$endpoint v$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
 
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
@@ -29,10 +29,10 @@ $X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 # Connect to vCenter Server
 try {
     Connect-VIServer -Server $vCenterServerFQDN -User $vCenterUsername -Password $vCenterPassword -ErrorAction Stop
-    Write-Host "1: Connected to vCenter Server <$vCenterServerFQDN> successfully." -Foregroundcolor Green
+    Write-Podehost "1: Connected to vCenter Server <$vCenterServerFQDN> successfully." -Foregroundcolor Green
 }
 catch {
-    Write-Host "1: Failed to connect to vCenter Server: <$vCenterServerFQDN> $($_.Exception.Message)" -ForegroundColor Red
+    Write-Podehost "1: Failed to connect to vCenter Server: <$vCenterServerFQDN> $($_.Exception.Message)" -ForegroundColor Red
     Write-PodeJsonResponse -Value @{ "success" = "false";"message"= "Unable to connect to <$vCenterServerFQDN>";"timestamp"="$DateVar"}
     exit
 }
@@ -47,7 +47,7 @@ $vSANEnabled = $vsanConfiguration.VsanEnabled
 
 if ($vSANEnabled -eq 'true')
     {
-        Write-Host "2: vSAN Enabled" -Foregroundcolor Blue
+        Write-Podehost "2: vSAN Enabled" -Foregroundcolor Blue
         # Logic for vSAN shutdown
         # https://core.vmware.com/blog/automation-improvements-using-powercli-131-vsan-8-u1
         # https://developer.broadcom.com/powercli/latest/vmware.vimautomation.storage/commands/stop-vsancluster
@@ -56,7 +56,7 @@ if ($vSANEnabled -eq 'true')
 
 else
     {
-        Write-Host "2: vSAN is not enabled. Continuing without changes. " -Foregroundcolor Green
+        Write-Podehost "2: vSAN is not enabled. Continuing without changes. " -Foregroundcolor Green
     }
 
 
@@ -65,13 +65,13 @@ else
 $DRSLevel = $cluster.DrsAutomationLevel
 if ($DRSLevel -eq 'FullyAutomated')
     {
-        Write-Host "3: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Blue
+        Write-Podehost "3: DRS Automation Level is <$DRSLevel>. Changing cluster DRS Automation Level to Partially Automated" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -DrsAutomation PartiallyAutomated -confirm:$false 
     }
 
 else
     {
-        Write-Host "3: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
+        Write-Podehost "3: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
     }   
 
 # Change the HA status if required
@@ -79,13 +79,13 @@ $HAStatus = $cluster.HAEnabled
 
 if ($HAStatus -eq 'True')
     {
-        Write-Host "4: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Blue
+        Write-Podehost "4: HA Status is turned on. Turning off HA on the cluster" -Foregroundcolor Blue
         Get-Cluster * | Set-Cluster -HAEnabled:$false -confirm:$false 
     }
 
 else
     {
-        Write-Host "4: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
+        Write-Podehost "4: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
     }   
 
 # vCLS Retreat Mode to ensure proper shutdown
@@ -101,7 +101,7 @@ $vCLSMode = (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsCo
 # SYSTEM_MANAGED = vCLS Enabled
 if ($vCLSMode -eq 'SYSTEM_MANAGED')
     {
-        Write-Host "X: vCLS Mode is set to SYSTEM MANAGED, changed to Retreat Mode for proper shutdown/maintenance mode." -Foregroundcolor Blue
+        Write-Podehost "X: vCLS Mode is set to SYSTEM MANAGED, changed to Retreat Mode for proper shutdown/maintenance mode." -Foregroundcolor Blue
 
         $clusterSystemVMSpec.DeploymentMode = "ABSENT"
         $clusterSpec = New-Object VMware.Vim.ClusterConfigSpecEx
@@ -115,22 +115,22 @@ if ($vCLSMode -eq 'SYSTEM_MANAGED')
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
 # Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName} | Where-Object  {$_.Name -notlike "ups-dummy-noshutdown*"} # Works! Excludes vCenter!
-Write-Host "5: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
+Write-Podehost "5: Discovered these powered on VMs: <$VMs>" -Foregroundcolor Green 
 
 ForEach ( $VM in $VMs ) 
 {
-    Write-Host "   Processing <$VM>" -ForegroundColor Green
-    Write-Host "      Checking for VMware Tools" -Foregroundcolor Green
+    Write-Podehost "   Processing <$VM>" -ForegroundColor Green
+    Write-Podehost "      Checking for VMware Tools" -Foregroundcolor Green
     $VMinfo = get-view -Id $VM.ID
     if ($VMinfo.config.Tools.ToolsVersion -eq 0)
     {
-        Write-Host "      No VMware tools detected in <$VM>, hard power off" -ForegroundColor Red
+        Write-Podehost "      No VMware tools detected in <$VM>, hard power off" -ForegroundColor Red
         Set-VM $VM -Description "$VMDescription - Hard Shutdown" -confirm:$false
         Stop-VM $VM -confirm:$false
     }
     else
     {
-       Write-Host "      VMware tools detected, attempting graceful shutdown of <$VM>" -Foregroundcolor Green
+       Write-Podehost "      VMware tools detected, attempting graceful shutdown of <$VM>" -Foregroundcolor Green
        Set-VM $VM -Description "$VMDescription - Graceful Shutdown" -confirm:$false
        Shutdown-VMGuest $VM -Confirm:$false
     }   
@@ -141,36 +141,36 @@ ForEach ( $VM in $VMs )
 # Once that loop has completed, eg the vm array is empty, shut down $vCenterVMName!
 
 # Second Pass Running VMs
-Write-Host "5.1: Checking running VMs second pass (waiting)" -Foregroundcolor Green
+Write-Podehost "5.1: Checking running VMs second pass (waiting)" -Foregroundcolor Green
 
 Start-Sleep -Seconds 45 # Wait a bit before running second pass. TODO: Check if there are still VMs, if not - don't wait?
 
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName}  # Works! Excludes vCenter!
 
-Write-Host "      These VMs are still powered on: <$VMs>" -Foregroundcolor Yellow
+Write-Podehost "      These VMs are still powered on: <$VMs>" -Foregroundcolor Yellow
 ForEach ( $VM in $VMs ) 
 {
     Set-VM $VM -Description "$VMDescription - Hard Shutdown" -confirm:$false
     Stop-VM $VM -confirm:$false
-    Write-Host "      Hard Shutdown of <$VM> performed" -ForegroundColor Red
+    Write-Podehost "      Hard Shutdown of <$VM> performed" -ForegroundColor Red
 }
 
 # TODO? Run once more and ensure $VM is empty?
 
 # Maintenance mode
 
-Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
+Write-Podehost "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName
-Write-Host "6.1: Saving vCenter ESXi host for later use (startup)"
-$vCHost = $vCVM.VMHost | Out-File -FilePath "$PSScriptRoot\shared\vcenterhost.txt"
+#Write-Podehost "6.1: Saving vCenter ESXi host for later use (startup)"
+$vCHost = $vCVM.VMHost #| Out-File -FilePath "vcenterhost.txt"
 
-Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
+Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
 
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
     ForEach ( $ESXiHost in $ESXiHosts )
             {
-                Write-Host "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
+                Write-Podehost "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
                 
             } 
@@ -185,30 +185,30 @@ Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCe
 # Hard shutdown right now (the VM is fake)
 # Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
 
-Write-Host "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
+Write-Podehost "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
 #Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
 #Start-Sleep -Seconds 10
 
-#Write-Host "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+#Write-Podehost "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 # Idea to connect directly to the host and shut down the VM & enable maintmode?
 # Might be better in a live environment where the vC is within the same cluster/datacenter
 # Connect-VIServer -Server IP_ADDRESS -Protocol https -User USER -Password PASS Needs more variables for ESXi host...
 
 #Stop-VM $vCenterVMName -confirm:$false # Should be Shutdown-VMGuest $vCenterVMName -Confirm:$false only Stop because of fake VC.
 
-Write-Host "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
+Write-Podehost "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 # Test with direct host connection instead of vCenter
 # TODO: Hardcoded creds
 
-Write-Host "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
+Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
 Connect-VIServer -Server $vCHost -user root -password Pronet2012! 
-Write-Host "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+Write-Podehost "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
-Write-Host "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
+Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
 Set-VMHost -State Maintenance
 
 # Completed 
@@ -217,9 +217,9 @@ Set-VMHost -State Maintenance
 $processTimer.Stop()
 $ts = $processTimer.Elapsed
 $elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seconds, ($ts.Milliseconds / 10)
-Write-Host "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
+Write-Podehost "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
 
 #Done
-Write-Host "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
-Write-Host "----------------------------------------------------------------" -ForegroundColor Cyan
+Write-Podehost "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
+Write-Podehost "----------------------------------------------------------------" -ForegroundColor Cyan
 Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown completed in $elapsedTime."}

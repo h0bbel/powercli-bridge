@@ -32,7 +32,12 @@ Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | O
 Start-PodeServer {
 
     #Attach port 8085 to the local machine address and use HTTP protocol
-    Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
+    #Add-PodeEndpoint -Address 0.0.0.0 -Port 8085 -Protocol HTTP
+
+    #Attach port 8085 to the local machine address and use HTTPS protocol with a self-signed cert
+    Add-PodeEndpoint -Address * -Port 8085 -Protocol Https -SelfSigned # Test HTTPS
+
+# TODO: Make this configurable? If statement, check env var?
 
     # Setup apikey authentication to validate a user
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
