@@ -162,8 +162,8 @@ ForEach ( $VM in $VMs )
 Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName
-Write-Host "6.1: Saving vCenter ESXi host for later use (startup)"
-$vCHost = $vCVM.VMHost | Out-File -FilePath "$PSScriptRoot\shared\vcenterhost.txt"
+#Write-Host "6.1: Saving vCenter ESXi host for later use (startup)"
+$vCHost = $vCVM.VMHost #| Out-File -FilePath "vcenterhost.txt"
 
 Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
 
