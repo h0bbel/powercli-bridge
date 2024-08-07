@@ -92,6 +92,8 @@ else
 # From https://williamlam.com/2023/09/easily-disable-vsphere-cluster-services-vcls-using-ui-api-in-vsphere-8-0-update-2.html
 
 $clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status.
+## What about multiple clusters?
+
 (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
 $clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
 $vCLSMode = (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
@@ -156,12 +158,13 @@ ForEach ( $VM in $VMs )
 # TODO? Run once more and ensure $VM is empty?
 
 # Maintenance mode
-## Start-Job to make script continue while waiting for maintenance mode to continue
-## Start-Job needs its own connection to vCenter, ref https://www.lucd.info/knowledge-base/running-a-background-job/
+
 Write-Host "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName
-$vCHost = $vCVM.VMHost
+Write-Host "6.1: Saving vCenter ESXi host for later use (startup)"
+$vCHost = $vCVM.VMHost | Out-File -FilePath "$PSScriptRoot\shared\vcenterhost.txt"
+
 Write-Host "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
 
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
@@ -197,11 +200,11 @@ Write-Host "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 # Test with direct host connection instead of vCenter
-## Issues with vCLS VMs since ... well, this goes into Maintenance Mode last. Need to set retreat mode??
+# TODO: Hardcoded creds
 
 Write-Host "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
-Connect-VIServer -Server $vCHost -user root -password Pronet2012!
+Connect-VIServer -Server $vCHost -user root -password Pronet2012! 
 Write-Host "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
