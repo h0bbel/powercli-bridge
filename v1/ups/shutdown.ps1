@@ -162,7 +162,7 @@ ForEach ( $VM in $VMs )
 
 Write-Podehost "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
-$vCVM = Get-VM -name $vCenterVMName
+$vCVM = Get-VM -name $vCenterVMName # For some reason this makes it double on subsequent runs? Or is it due to vCenter returning double?
 $vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
@@ -179,10 +179,8 @@ Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use 
     # attempt to re-initialise the previous state (will do nothing if the file doesn't exist)
     # Do not need to restore it here, right?
     # Restore-PodeState -Path './states/shutdown_state.json'
-
- $timestamp = Get-Date
-
     # Issue: It adds on subsequent runs.
+
 Lock-PodeObject -ScriptBlock {
         #Set-PodeState -Name 'data' -Value @{ 'Name' = 'Rick Sanchez' } | Out-Null
         # Delete previous state, as subsequent runs adds to it and not overwrites, at least for $vCHost for some reason?!
@@ -192,10 +190,9 @@ Lock-PodeObject -ScriptBlock {
     #Remove-PodeState -Name 'ExecutionTime'
 
     Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
-    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$timestamp" } # | Out-Null
+    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$UPSdate" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
     }
-
 
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
     ForEach ( $ESXiHost in $ESXiHosts )
@@ -232,12 +229,16 @@ Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
-Connect-VIServer -Server $vCHost -user root -password Pronet2012! 
+Connect-VIServer -Server $vCHost -user root -password Pronet2012!  # TODO: Remove hardcoding!
 Write-Podehost "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
 Set-VMHost -State Maintenance
+#Disconnect-VIServer -Server $vCHost -Force -Confirm:$false     # This disconnect fails.
+
+# Disconnect all
+Disconnect-VIServer -Server * -Force -Confirm:$false
 
 # Completed 
 
