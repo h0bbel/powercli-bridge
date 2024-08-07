@@ -162,8 +162,7 @@ ForEach ( $VM in $VMs )
 Write-Podehost "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName
-#Write-Podehost "6.1: Saving vCenter ESXi host for later use (startup)"
-$vCHost = $vCVM.VMHost #| Out-File -FilePath "vcenterhost.txt"
+$vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
 
@@ -172,20 +171,30 @@ Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <
             {
                 Write-Podehost "6.1: Enabling Maintenance Mode on <$ESXiHost>" -ForegroundColor Yellow
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
-                
             } 
 
-    Write-PodeHost "6.1a: Try to save state" -ForegroundColor Red
 
-    # create the shared variable
-    #Set-PodeState -Name 'vCenterHost' -Value @{ 'values' = @(); } | Out-Null
+    # Begin State
+    # Store data in a state file, for usage later on for instance in a startup sequence.
+    # Does this just add data? Just remove the restore, and add that to the startup sequence seems like the best bet.
 
-    # attempt to re-initialise the state (will do nothing if the file doesn't exist)
-    Restore-PodeState -Path './state.json'
+    Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Red
+
+    # Create the shared variable
+    #Set-PodeState -Name 'statedata' -Value @{ 'values' = @(); } #| Out-Null
+
+    # attempt to re-initialise the previous state (will do nothing if the file doesn't exist)
+    # Do not need to restore it here, right?
+    # Restore-PodeState -Path './states/shutdown_state.json'
+
+    $timestamp = Get-Date
+
 
     Lock-PodeObject -ScriptBlock {
-        Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } #| Out-Null
-        Save-PodeState -Path './state.json'
+        #Set-PodeState -Name 'data' -Value @{ 'Name' = 'Rick Sanchez' } | Out-Null
+        Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
+        Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$timestamp" } # | Out-Null
+        Save-PodeState -Path './states/shutdown_state.json'
     }
 
 
