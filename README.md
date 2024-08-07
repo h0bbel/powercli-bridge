@@ -25,4 +25,3 @@ style E fill:#F3522F,stroke:#333,stroke-width:2px
     S --> T[Shut down vCenter VM];
     T --> U[vCenter Host Maintenance Mode];
     U --> V[Completed];
-    
