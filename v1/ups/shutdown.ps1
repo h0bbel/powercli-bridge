@@ -175,7 +175,19 @@ Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <
                 
             } 
 
-        
+    Write-PodeHost "6.1a: Try to save state" -ForegroundColor Red
+
+    # create the shared variable
+    Set-PodeState -Name 'vCenterHost' -Value @{ 'values' = @(); } | Out-Null
+
+    # attempt to re-initialise the state (will do nothing if the file doesn't exist)
+    Restore-PodeState -Path './state.json'
+
+    Lock-PodeObject -ScriptBlock {
+        Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = '$vCHost' } #| Out-Null
+    }
+
+
 ## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
 ## Move to an env variable for customization?
 ## Is it required?
