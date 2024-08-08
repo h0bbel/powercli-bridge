@@ -17,6 +17,13 @@ Write-Podehost "$endpoint v$version UPS Shutdown event triggered - Running" -For
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K"
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
+# State: Save the execution time 
+Lock-PodeObject -ScriptBlock {
+    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$UPSdate" } # | Out-Null
+    Save-PodeState -Path './states/shutdown_state.json'
+}
+
+
 # Grab config from environment variables defined in .\shared\env.ps1
 # Move to dotsource included? for Re-use in other scripts?
 
@@ -75,6 +82,13 @@ else
         Write-Podehost "3: DRS Automation Level is <$DRSLevel>. Continuing without changes. " -Foregroundcolor Green
     }   
 
+# State: Save the DRS Level
+Lock-PodeObject -ScriptBlock {
+    Set-PodeState -Name 'DRSLevel' -Value @{ 'DRSLevel' = "$DRSLevel" } # | Out-Null
+    Save-PodeState -Path './states/shutdown_state.json'
+}
+
+
 # Change the HA status if required
 $HAStatus = $cluster.HAEnabled
 
@@ -89,6 +103,11 @@ else
         Write-Podehost "4: HA Status is <$HAStatus>. No need to disable HA on the cluster" -Foregroundcolor Green
     }   
 
+# State: Save the HA Status
+Lock-PodeObject -ScriptBlock {
+    Set-PodeState -Name 'HAStatus' -Value @{ 'HAStatus' = "$HAStatus" } # | Out-Null
+    Save-PodeState -Path './states/shutdown_state.json'
+}
 # vCLS Retreat Mode to ensure proper shutdown
 # From https://williamlam.com/2023/09/easily-disable-vsphere-cluster-services-vcls-using-ui-api-in-vsphere-8-0-update-2.html
 
@@ -100,6 +119,13 @@ $clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
 $vCLSMode = (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
 # ABSENT = vCLS Disabled
 # SYSTEM_MANAGED = vCLS Enabled
+
+# State: Save the vCLSMode
+Lock-PodeObject -ScriptBlock {
+    Set-PodeState -Name 'vCLSMode' -Value @{ 'vCLSMode' = "$vCLSMode" } # | Out-Null
+    Save-PodeState -Path './states/shutdown_state.json'
+}
+
 if ($vCLSMode -eq 'SYSTEM_MANAGED')
     {
         Write-Podehost "X: vCLS Mode is set to SYSTEM MANAGED, changed to Retreat Mode for proper shutdown/maintenance mode." -Foregroundcolor Blue
