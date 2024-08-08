@@ -29,11 +29,13 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 | vCenterServerFQDN | vCenter FQDN name, used for the PowerCLI connection                        |
 | vCenterUsername   | vCenter username, ex. <administrator@vsphere.local>                        |
 | vCenterPassword   | vCenter password                                                           |
+| ESXiHostUsername  | ESXi host username                                                         |
+| ESXiHostPassword  | ESXi host password                                                         |
 
 #### PODE / REST API Related
 
-| ENV Variable    | Description |
-| --------------- | ----------- |
+| ENV Variable   | Description |
+| -------------- | ----------- |
 | X_PODE_API_KEY | API Key     |
 
 `X_PODE_API_KEY` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
