@@ -38,7 +38,18 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 
 `X_PODE_API_KEY ` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
 
-## #Flowchart
+### States
+
+Current configuration is saved in `/states/shutdown_state.json`, for use later e.g a startup action or similar
+
+State is saved for:
+
+* Execution Time
+* HA Status
+* DRS Level
+* vCLS Mode
+  
+### Flowchart
 
 ```mermaid
 flowchart TD
