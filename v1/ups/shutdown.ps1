@@ -175,16 +175,14 @@ ForEach ( $VM in $VMs )
     Write-Podehost "      Hard Shutdown of <$VM> performed" -ForegroundColor Red
 }
 
-
 # Maintenance mode
 Write-Podehost "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
-$vCVM = Get-VM -name $vCenterVMName # For some reason this makes it double on subsequent runs? Or is it due to vCenter returning double?
+$vCVM = Get-VM -name $vCenterVMName 
 $vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
-   
-Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Red
+Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Green
 
  # Begin State
     # Store data in a state file, for usage later on for instance in a startup sequence.
@@ -193,6 +191,7 @@ Lock-PodeObject -ScriptBlock {
     Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
     }
+    Write-Podehost "State has been saved in ./states/shutdown_state.json" -ForegroundColor Cyan
 
     $ESXiHosts = Get-VMHost  | Where-Object {$_.name -ne "$vCHost"} #Only loop through non VC hosts
     ForEach ( $ESXiHost in $ESXiHosts )
@@ -239,8 +238,6 @@ Set-VMHost -State Maintenance
 
 # Disconnect all
 Disconnect-VIServer -Server * -Force -Confirm:$false
-
-# Completed 
 
 #Timer
 $processTimer.Stop()
