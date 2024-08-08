@@ -9,12 +9,13 @@ Write-Podehost "----------------------------------------------------------------
 Write-Podehost "$endpoint v$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
 
 # Standard Definitions
-$UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K" # Issue: https://github.com/h0bbel/powercli-bridge/issues/9
+#$UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K" # Issue: https://github.com/h0bbel/powercli-bridge/issues/9
+$EpochTime = [int][double]::Parse((Get-Date (get-date).touniversaltime() -UFormat %s))
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
 # State: Save the execution time 
 Lock-PodeObject -ScriptBlock {
-    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$UPSdate" } # | Out-Null
+    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
 }
 
