@@ -31,6 +31,18 @@ Install-Module -Name Pode -Scope AllUsers"
 Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
 Run `wrapper.ps1` to set the required environment variables, and start the Pode server.
 
+##### setenv.ps1.example
+
+```powershell
+$Env:vCenterVMName='vCenter VM Name'
+$Env:vCenterServerFQDN='vCenter FQDN'
+$Env:vCenterUsername='vCenter Username'
+$Env:vCenterPassword='vCenter User Password'
+$Env:ESXiHostUsername='ESXi host username'
+$Env:ESXiHostPassword='ESXi host password'
+$env:X_PODE_API_KEY = '12345678910'
+```
+
 ## REST API Example Usage
 
 ``` shell
