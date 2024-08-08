@@ -16,7 +16,7 @@ The ESXi host running vCenter is stored in a state file so that it can be picked
 
 ### Option 1: Container
 
-### Option 2: Run PowerShell/PowerCLI
+### Option 2: Run in PowerShell/PowerCLI
 
 #### Install required Powershell modules
 
@@ -35,7 +35,7 @@ Run `wrapper.ps1` to set the required environment variables, and start the Pode 
 
 ``` shell
 curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
---header 'X-API-KEY: 123456'
+--header 'X-API-KEY: <your api key>'
 ```
 
 ### Environment Variables Required
