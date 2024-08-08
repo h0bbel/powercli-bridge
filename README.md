@@ -31,6 +31,10 @@ Install-Module -Name Pode -Scope AllUsers"
 Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
 Run `wrapper.ps1` to set the required environment variables, and start the Pode server.
 
+## shutdown.ps1 
+
+Only thing available as of now. More to come?
+
 ##### setenv.ps1.example
 
 ```powershell
@@ -108,3 +112,6 @@ style E fill:#F3522F,stroke:#333,stroke-width:2px
     S --> T[Shut down vCenter VM];
     T --> U[vCenter Host Maintenance Mode];
     U --> V[Completed];
+
+
+### Credits
