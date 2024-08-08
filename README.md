@@ -36,7 +36,7 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 | --------------- | ----------- |
 | X_PODE_API_KEY | API Key     |
 
-`X_PODE_API_KEY ` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
+`X_PODE_API_KEY` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
 
 ### States
 
@@ -48,6 +48,7 @@ State is saved for:
 * HA Status
 * DRS Level
 * vCLS Mode
+* vCenter Host (Which host was the vCenter running on when shutdown was performed)
   
 ### Flowchart
 
