@@ -9,7 +9,7 @@ Write-Podehost "----------------------------------------------------------------
 Write-Podehost "$endpoint v$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
 
 # Standard Definitions
-#$UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K" # Issue: https://github.com/h0bbel/powercli-bridge/issues/9
+$UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K" # Used in VM Description field
 $EpochTime = [int][double]::Parse((Get-Date (get-date).touniversaltime() -UFormat %s))
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
