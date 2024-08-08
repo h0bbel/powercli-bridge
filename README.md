@@ -18,7 +18,20 @@ The ESXi host running vCenter is stored in a state file so that it can be picked
 
 ### Option 2: Run PowerShell/PowerCLI
 
-## REST API Example Usage 
+#### Install required Powershell modules
+
+```powershell
+Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+Install-Module VMware.PowerCLI -Scope AllUsers
+Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP \$false -Confirm:\$false | Out-Null"
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:\$false | Out-Null"
+Install-Module -Name Pode -Scope AllUsers"
+```
+
+Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
+Run `wrapper.ps1` to set the required environment variables, and start the Pode server.
+
+## REST API Example Usage
 
 ``` shell
 curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
@@ -45,8 +58,6 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 | X_PODE_API_KEY | API Key     |
 
 `X_PODE_API_KEY` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
-
-If deployed outside of a container, edit `setenv.ps1.example` and populate it with real data. Rename the file to `setenv.ps1` and run it before running `./server.ps1`
 
 ### States
 
