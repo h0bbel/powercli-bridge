@@ -31,7 +31,7 @@ Install-Module -Name Pode -Scope AllUsers"
 Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
 Run `wrapper.ps1` to set the required environment variables, and start the Pode server.
 
-## shutdown.ps1 
+## shutdown.ps1
 
 Only thing available as of now. More to come?
 
