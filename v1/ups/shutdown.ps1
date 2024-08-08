@@ -188,7 +188,7 @@ Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use 
     # Store data in a state file, for usage later on for instance in a startup sequence.
 Lock-PodeObject -ScriptBlock {
     Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
-    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$UPSdate" } # | Out-Null
+    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
     }
 
