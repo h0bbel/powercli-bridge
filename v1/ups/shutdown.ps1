@@ -1,10 +1,5 @@
 ## TODO
-### What about vSAN? Add check and proper shutdown? https://core.vmware.com/blog/automation-improvements-using-powercli-131-vsan-8-u1
-### DRS/HA - Check value before setting DRS partially automated?
-### Cycle through VMs again before doing host maintenance mode (wait loop) in case there are still VMs running
-### Logic problem: Maintenance mode? Find out where vCenter is, and then wait with that host?
-### Numbering in output, is there a better way to do it?
-### State: Record HA/DRS/vCLS mode in state as well!
+## Issues: https://github.com/h0bbel/powercli-bridge/issues
 
 # Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -26,7 +21,6 @@ Lock-PodeObject -ScriptBlock {
 
 # Grab config from environment variables defined in .\shared\env.ps1
 # Move to dotsource included? for Re-use in other scripts?
-
 $vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to exclude the vCenter VM in the shutdown procedure
 $vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
 $vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
@@ -66,8 +60,6 @@ else
     {
         Write-Podehost "2: vSAN is not enabled. Continuing without changes. " -Foregroundcolor Green
     }
-
-
 
 # Change DRS Automation level to partially automated if required
 $DRSLevel = $cluster.DrsAutomationLevel
@@ -111,8 +103,7 @@ Lock-PodeObject -ScriptBlock {
 # vCLS Retreat Mode to ensure proper shutdown
 # From https://williamlam.com/2023/09/easily-disable-vsphere-cluster-services-vcls-using-ui-api-in-vsphere-8-0-update-2.html
 
-$clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status.
-## What about multiple clusters?
+$clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status. Issue: https://github.com/h0bbel/powercli-bridge/issues/1
 
 (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
 $clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
@@ -137,7 +128,6 @@ if ($vCLSMode -eq 'SYSTEM_MANAGED')
         $task1 = Get-Task -Id ("Task-$($task.value)")
         $task1 | Wait-Task
    }
-
 
 # Graceful shutdown of VMs with VMware Tools, PowerOff on others
 # Exclude vCLS VMs & ups-dummy-noshutdown* for testing purposes - ensure those are caught by second stage
@@ -170,7 +160,7 @@ ForEach ( $VM in $VMs )
 # Second Pass Running VMs
 Write-Podehost "5.1: Checking running VMs second pass (waiting)" -Foregroundcolor Green
 
-Start-Sleep -Seconds 45 # Wait a bit before running second pass. TODO: Check if there are still VMs, if not - don't wait?
+Start-Sleep -Seconds 45 # Wait a bit before running second pass.
 
 $VMs = Get-VM | Where-Object {$_.powerstate -eq ‘PoweredOn’} | Where-Object  {$_.Name -notlike "vCLS*"} | Where-Object  {$_.Name -notlike $vCenterVMName}  # Works! Excludes vCenter!
 
@@ -182,39 +172,20 @@ ForEach ( $VM in $VMs )
     Write-Podehost "      Hard Shutdown of <$VM> performed" -ForegroundColor Red
 }
 
-# TODO? Run once more and ensure $VM is empty?
 
 # Maintenance mode
-
 Write-Podehost "6: ESXi Maintenance Mode" -Foregroundcolor Green
 
 $vCVM = Get-VM -name $vCenterVMName # For some reason this makes it double on subsequent runs? Or is it due to vCenter returning double?
 $vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
-    # Begin State
-    # Store data in a state file, for usage later on for instance in a startup sequence.
-    # Does this just add data? Just remove the restore, and add that to the startup sequence seems like the best bet.
-
+   
 Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Red
 
-    # Create the shared variable
-    # Need this to empty it out on subsequent runs?
-    # Set-PodeState -Name 'vCenterHost' -Value @{ 'values' = @(); } #| Out-Null
-
-    # attempt to re-initialise the previous state (will do nothing if the file doesn't exist)
-    # Do not need to restore it here, right?
-    # Restore-PodeState -Path './states/shutdown_state.json'
-    # Issue: It adds on subsequent runs.
-
+ # Begin State
+    # Store data in a state file, for usage later on for instance in a startup sequence.
 Lock-PodeObject -ScriptBlock {
-        #Set-PodeState -Name 'data' -Value @{ 'Name' = 'Rick Sanchez' } | Out-Null
-        # Delete previous state, as subsequent runs adds to it and not overwrites, at least for $vCHost for some reason?!
-        # We don't really need the previous state here, since we don't use it for anything.
-        
-    #Remove-PodeState -Name 'vCenterHost'
-    #Remove-PodeState -Name 'ExecutionTime'
-
     Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
     Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$UPSdate" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
@@ -233,8 +204,8 @@ Lock-PodeObject -ScriptBlock {
 # Start-Sleep -Seconds 30
 
 # Shut down vCenter goes here.
-# Hard shutdown right now (the VM is fake)
-# Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
+## Hard shutdown right now (the VM is fake)
+## Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
 
 Write-Podehost "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
 #Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
@@ -251,7 +222,7 @@ Write-Podehost "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Gre
 Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 # Test with direct host connection instead of vCenter
-# TODO: Hardcoded creds
+# TODO: Hardcoded creds. Issue: https://github.com/h0bbel/powercli-bridge/issues/6
 
 Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 

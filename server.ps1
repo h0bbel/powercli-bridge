@@ -1,18 +1,4 @@
 # Notes
-
-# TODO:
-#   All scripts should be located in /v1/
-#   All scripts need a versioning scheme
-#   Authentication / Secrets
-#       Easiest to use JWT? https://pode.readthedocs.io/en/latest/Tutorials/Authentication/Methods/JWT/#parse-jwt
-#   How to handle vCenter shutdown and then shutdown hosts?
-#   Look into tasks? Perhaps a better way to run async? (eg. no timeout issues)
-#   Output from scripts not until end... any way to force it to return early?
-
-# Issues:
-#   Configured timeout value in server1.psd - Did not help?
-
-
 # References:
 #   https://bjornpeters.com/powershell/create-your-first-basic-api-in-powershell-using-pode/
 #   https://www.virtu-al.net/2010/01/06/powercli-shutdown-your-virtual-infrastructure/
@@ -22,11 +8,9 @@
 #   
 
 # Set PowerCLI Configuration silently
-
 Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false | Out-Null
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null
 Set-PowerCLIConfiguration -DisplayDeprecationWarnings $false -Confirm:$false | Out-Null
-
 
 #Start Pode Server
 Start-PodeServer {
@@ -36,8 +20,6 @@ Start-PodeServer {
 
     #Attach port 8085 to the local machine address and use HTTPS protocol with a self-signed cert
     Add-PodeEndpoint -Address * -Port 8085 -Protocol Https -SelfSigned # Test HTTPS
-
-# TODO: Make this configurable? If statement, check env var?
 
     # Setup apikey authentication to validate a user
     New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Authenticate' -Sessionless -ScriptBlock {
