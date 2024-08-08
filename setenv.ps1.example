@@ -1,0 +1,9 @@
+# NEW
+$Env:vCenterVMName='vCenter VM Name'
+$Env:vCenterServerFQDN='vCenter FQDN'
+$Env:vCenterUsername='vCenter Username'
+$Env:vCenterPassword='vCenter User Password'
+$Env:ESXiHostUsername='ESXi host username'          
+$Env:ESXiHostPassword='ESXi host password'         
+
+$env:X_PODE_API_KEY = '12345678910'

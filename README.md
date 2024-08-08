@@ -12,7 +12,13 @@ Then hosts that are not running the vCenter VM are put into Maintenance Mode, be
 
 The ESXi host running vCenter is stored in a state file so that it can be picked up again by a future startup action.
 
-## Example Usage
+## How to run
+
+### Option 1: Container
+
+### Option 2: Run PowerShell/PowerCLI
+
+## REST API Example Usage 
 
 ``` shell
 curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
@@ -27,9 +33,9 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 | ----------------- | -------------------------------------------------------------------------- |
 | vCenterVMName     | vCenter VM name - used to exclude the vCenter VM in the shutdown procedure |
 | vCenterServerFQDN | vCenter FQDN name, used for the PowerCLI connection                        |
-| vCenterUsername   | vCenter username, ex. <administrator@vsphere.local>                        |
+| vCenterUsername   | vCenter username, ex. `administrator@vsphere.local`                        |
 | vCenterPassword   | vCenter password                                                           |
-| ESXiHostUsername  | ESXi host username                                                         |
+| ESXiHostUsername  | ESXi host username, default `root`                                         |
 | ESXiHostPassword  | ESXi host password                                                         |
 
 #### PODE / REST API Related
@@ -39,6 +45,8 @@ curl --location 'https://localhost:8085/api/v1/ups/shutdown' \
 | X_PODE_API_KEY | API Key     |
 
 `X_PODE_API_KEY` is any key you want to use. Can for instance be generated with [API Key Generator](https://www.akto.io/tools/api-key-generator)
+
+If deployed outside of a container, edit `setenv.ps1.example` and populate it with real data. Rename the file to `setenv.ps1` and run it before running `./server.ps1`
 
 ### States
 
