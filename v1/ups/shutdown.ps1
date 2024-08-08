@@ -26,6 +26,8 @@ $vCenterVMName = $Env:vCenterVMName                 # vCenter VM name - used to 
 $vCenterServerFQDN = $Env:vCenterServerFQDN         # vCenter FQDN name, used for the PowerCLI connection
 $vCenterUsername = $Env:vCenterUsername             # vCenter username, ex. administrator@vsphere.local
 $vCenterPassword = $Env:vCenterPassword             # $vCenterUsername Password
+$ESXiHostUsername = $Env:ESXiHostUsername            
+$ESXiHostPassword = $Env:ESXiHostPassword         
 
 $X_PODE_API_KEY = $Env:X_PODE_API_KEY               # API Key
 
@@ -227,13 +229,13 @@ Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
-Connect-VIServer -Server $vCHost -user root -password Pronet2012!  # TODO: Remove hardcoding!
+Connect-VIServer -Server $vCHost -user $ESXiHostUsername -password $ESXiHostPassword
+
 Write-Podehost "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
 Stop-VM $vCenterVMName -confirm:$false
 
 Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
 Set-VMHost -State Maintenance
-#Disconnect-VIServer -Server $vCHost -Force -Confirm:$false     # This disconnect fails.
 
 # Disconnect all
 Disconnect-VIServer -Server * -Force -Confirm:$false
