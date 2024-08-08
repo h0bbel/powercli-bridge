@@ -47,4 +47,8 @@ Start-PodeServer {
          & "$PSScriptRoot\v1\ups\shutdown.ps1"           
     }
 
+    Add-PodeRoute -Method Get -Path '/api/v1/ups/startup' -Authentication 'Authenticate' -ScriptBlock {
+        & "$PSScriptRoot\v1\ups\startup.ps1"           
+   }
+
 }   
