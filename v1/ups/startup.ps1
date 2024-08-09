@@ -13,16 +13,17 @@ Write-Podehost "$endpoint v$version UPS Startup event triggered - Running" -Fore
 ## Read from state
 Lock-PodeObject -ScriptBlock {
     Restore-PodeState -Path './states/shutdown_state.json'
-    $names = Get-PodeStateNames
-    Write-PodeHost "The following states have been restored: $names" -ForegroundColor Green
-    $DRSLevel = Get-PodeState -Name 'DRSLevel' | ConvertFrom-Json
-    $vCenterHost = Get-PodeState -Name 'vCenterHost' | ConvertFrom-Json
-    $HAStatus = Get-PodeState -Name 'HAStatus' | ConvertFrom-Json
-    $vCLSMode = Get-PodeState -Name 'vCLSMode' | ConvertFrom-Json
-    $WhenEpoch = Get-PodeState -Name 'ExecutionTime' | ConvertFrom-Json
+    $StateNames = Get-PodeStateNames
+    Write-PodeHost "The following states have been restored: $StateNames" -ForegroundColor Green
+    $DRSLevel = Get-PodeState -Name 'DRSLevel' | ConvertFrom-Json -AsHashtable
+    $vCenterHost = Get-PodeState -Name 'vCenterHost'
+    $HAStatus = Get-PodeState -Name 'HAStatus'
+    $vCLSMode = Get-PodeState -Name 'vCLSMode'
+    $WhenEpoch = Get-PodeState -Name 'ExecutionTime'
 
     # Issue: Something is wonky with the variables here. Must intestigate
     #Write-PodeHost "DRS Level: $DRSLevel, HA Status: $HAStatus, vCLS Mode: $vCLSMode, vCenterHost: $vCenterHost, Epoch: $WhenEpoch"
+Write-PodeHost "DRS Level: $DRSLevel"
 
     #Get-PodeState 
     #Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null

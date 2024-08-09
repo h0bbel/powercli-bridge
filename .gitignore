@@ -5,3 +5,4 @@ endpoints/config/vSphereEnv.ps1
 setenv.bat
 setenv.ps1
 states/shutdown_state.json
+states/shutdown_state.old.json

@@ -14,8 +14,13 @@ $EpochTime = [int][double]::Parse((Get-Date (get-date).touniversaltime() -UForma
 $VMDescription = "$UPSdate : UPS shutdown event detected, shutting down"  
 
 # State: Save the execution time 
+# Replace ConfigItem with Clustername-Property? Can't have ConfigItem for all, it just overwrites the same one...
+# Set-PodeState -Name 'Users' -Value @('user1', 'user2') -Scope General, Users seems to be the way...
+# Test the TimeStamp thing here. If that doesn't work, seems like we need to write everything at the end. Which is fine, really.
+# TODO: Revert ConfigItem change.
+
 Lock-PodeObject -ScriptBlock {
-    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
+    Set-PodeState -Name 'Timestamp' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
 }
 
@@ -188,7 +193,6 @@ Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use 
     # Store data in a state file, for usage later on for instance in a startup sequence.
 Lock-PodeObject -ScriptBlock {
     Set-PodeState -Name 'vCenterHost' -Value @{ 'vCenterHost' = "$vCHost" } # | Out-Null
-    Set-PodeState -Name 'ExecutionTime' -Value @{ 'Timestamp' = "$EpochTime" } # | Out-Null
     Save-PodeState -Path './states/shutdown_state.json'
     }
     Write-Podehost "State has been saved in ./states/shutdown_state.json" -ForegroundColor Cyan
