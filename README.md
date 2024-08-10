@@ -16,16 +16,22 @@ The ESXi host running vCenter is stored in a state file so that it can be picked
 
 ### Option 1: Container
 
+Download the pre-configured container and run it.
+
 ### Option 2: Run in PowerShell/PowerCLI
 
-#### Install required Powershell modules
+#### Option 2a: Automatically install and configure required Powershell modules (PowerCLI and Pode)
+
+Run `installer.ps1` to automatically install PowerCLI and Pode Powershell modules.
+
+#### Option 2b: Manually install and configure required Powershell modules (PowerCLI and Pode)
 
 ```powershell
 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
 Install-Module VMware.PowerCLI -Scope AllUsers
-Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP \$false -Confirm:\$false | Out-Null"
-Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:\$false | Out-Null"
-Install-Module -Name Pode -Scope AllUsers"
+Set-PowerCLIConfiguration -Scope AllUsers -ParticipateInCEIP \$false -Confirm:\$false | Out-Null
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:\$false | Out-Null
+Install-Module -Name Pode -Scope AllUsers
 ```
 
 Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
