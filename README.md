@@ -35,7 +35,7 @@ Install-Module -Name Pode -Scope AllUsers
 ```
 
 Edit  `setenv.ps1.example` and replace the values with the real values from your environment. Rename the file to `setenv.ps1`.
-Run `wrapper.ps1` to set the required environment variables, and start the Pode server.
+Run `wrapper.ps1` to install the required Powershell modules, and set the required environment variables, and start the Pode server.
 
 ## shutdown.ps1
 
