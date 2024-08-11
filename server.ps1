@@ -40,9 +40,11 @@ Start-PodeServer {
         return $null
     }
 
-    New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging -Levels Debug, Error, Warning, Informational, Verbose
+    # Configure Pode
 
+    New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging -Levels Debug, Error, Warning, Informational, Verbose
     
+    # Add Routes
     Add-PodeRoute -Method Get -Path '/api/v1/ups/shutdown' -Authentication 'Authenticate' -ScriptBlock {
          & "$PSScriptRoot\v1\ups\shutdown.ps1"           
     }
