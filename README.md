@@ -41,7 +41,7 @@ Run `wrapper.ps1` set the required environment variables, and start the Pode ser
 
 Only thing available as of now. More to come?
 
-##### setenv.ps1.example
+### setenv.ps1.example
 
 ```powershell
 $Env:vCenterVMName='vCenter VM Name'
@@ -118,4 +118,3 @@ style E fill:#F3522F,stroke:#333,stroke-width:2px
     S --> T[Shut down vCenter VM];
     T --> U[vCenter Host Maintenance Mode];
     U --> V[Completed];
-    

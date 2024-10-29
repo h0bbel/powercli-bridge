@@ -7,6 +7,19 @@
 #   https://polarclouds.co.uk/esxi-rpi-ups-pt3/
 #   
 
+#https://learn.microsoft.com/en-us/powershell/scripting/developer/help/syntax-of-comment-based-help?view=powershell-7.4
+
+<#
+.SYNOPSIS
+  Starts the Pode server and loads the configured routes
+.DESCRIPTION
+  Starts the Pode server and loads the configured routes
+.LINK 
+  https://github.com/h0bbel/powercli-bridge/
+.EXAMPLE
+  PS> .\server.ps1
+#>
+
 # Set PowerCLI Configuration silently
 Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false | Out-Null
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false | Out-Null

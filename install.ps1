@@ -1,5 +1,15 @@
-
 # Installer script for installing and configuring PowerCLI and Pode
+
+<#
+.SYNOPSIS
+  Install required Powershell modules automatically
+.DESCRIPTION
+  Sets PSRepository to PSGallery, installes PowerCLI and Pode, unless they are already installed.
+.LINK 
+  https://github.com/h0bbel/powercli-bridge/
+.EXAMPLE
+  PS> .\install.ps1
+#>
 
 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
 
