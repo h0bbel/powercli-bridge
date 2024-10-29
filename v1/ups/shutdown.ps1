@@ -111,7 +111,8 @@ Lock-PodeObject -ScriptBlock {
 # vCLS Retreat Mode to ensure proper shutdown
 # From https://williamlam.com/2023/09/easily-disable-vsphere-cluster-services-vcls-using-ui-api-in-vsphere-8-0-update-2.html
 
-$clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status. Issue: https://github.com/h0bbel/powercli-bridge/issues/1
+#$clusterName = "cl01" #TODO: Hardcoded for now. Also, needs an if loop to check existing status. Issue: https://github.com/h0bbel/powercli-bridge/issues/1
+$clustername = $cluster
 
 (Get-Cluster $clusterName).ExtensionData.ConfigurationEx.SystemVMsConfig.DeploymentMode
 $clusterSystemVMSpec = New-Object VMware.Vim.ClusterSystemVMsConfigSpec
@@ -232,16 +233,34 @@ Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
 
 Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
-Connect-VIServer -Server $vCHost -user $ESXiHostUsername -password $ESXiHostPassword
+    Connect-VIServer -Server $vCHost -user $ESXiHostUsername -password $ESXiHostPassword
 
 Write-Podehost "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
-Stop-VM $vCenterVMName -confirm:$false
+    Stop-VM $vCenterVMName -confirm:$false
 
 Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
-Set-VMHost -State Maintenance
+    Set-VMHost -State Maintenance
 
 # Disconnect all
 Disconnect-VIServer -Server * -Force -Confirm:$false
+
+# Shutdown hosts here
+Write-Podehost "9.0: Shutting down ESXi hosts" -Foregroundcolor Green
+
+ForEach ( $ESXiHost in $ESXiHosts ) # NOTE THIS DOES NOT INCLUDE VCHOST
+        {
+            Write-Podehost "9.1: Direct Connect to <$ESXiHost>" -ForegroundColor Yellow
+                Connect-VIServer -Server $ESXihost -user $ESXiHostUsername -password $ESXiHostPassword
+            Write-Podehost "9.1: Shutting down <$ESXiHost>" -ForegroundColor Yellow
+                Stop-VMHost -Force -Reason "UPS Shutdown" -Confirm:$false
+        } 
+
+# Shutdown VC host
+
+Write-Podehost "9.2: Direct Connect to vCenter Host: <$vCHost>" -ForegroundColor Yellow
+    Connect-VIServer -Server $vCHost -user $ESXiHostUsername -password $ESXiHostPassword
+Write-Podehost "9.2: Shutting down vCenter Host: <$vCHost>" -ForegroundColor Yellow
+    Stop-VMHost -Force -Reason "UPS Shutdown" -Confirm:$false
 
 #Timer
 $processTimer.Stop()

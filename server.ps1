@@ -54,7 +54,8 @@ Start-PodeServer {
     }
 
     # Configure Pode
-    New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging -Levels Debug, Error, Warning, Informational, Verbose
+    New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging -Levels Debug, Error, Warning, Informational
+    #, Verbose
 
 
     # Add Routes
