@@ -8,7 +8,7 @@
 .LINK 
   https://github.com/h0bbel/powercli-bridge/
 .EXAMPLE
-  PS> .\wrapper.ps1
+  PS> .\install.ps1
 #>
 
 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
