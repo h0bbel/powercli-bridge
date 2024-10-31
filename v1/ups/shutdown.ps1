@@ -3,10 +3,10 @@
 
 # Timer ref: https://arcanecode.com/2023/05/15/fun-with-powershell-elapsed-timers/
 $processTimer = [System.Diagnostics.Stopwatch]::StartNew()
-$endpoint = "UPS Shutdown"
+$endpoint = "Shutdown"
 $version = "0.1"
 Write-Podehost "----------------------------------------------------------------" -ForegroundColor Cyan
-Write-Podehost "$endpoint v$version UPS Shutdown event triggered - Running" -ForegroundColor Cyan
+Write-Podehost "$endpoint v$version hutdown event triggered - Running" -ForegroundColor Cyan
 
 # Standard Definitions
 $UPSdate = Get-Date -Format "dd/MM/yyyy HH:mm K" # Used in VM Description field
@@ -188,7 +188,7 @@ $vCVM = Get-VM -name $vCenterVMName
 $vCHost = $vCVM.VMHost
 
 Write-PodeHost "6.1: Deferring Maintenance Mode for <$vCHost> since vCenter VM <$vCenterVMName> is running on it" -ForegroundColor Green
-Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use (startup)" -ForegroundColor Green
+Write-Podehost "6.1a: Saving vCenter ESXi host <$vCHost> in state for later use" -ForegroundColor Green
 
  # Begin State
     # Store data in a state file, for usage later on for instance in a startup sequence.
@@ -205,38 +205,26 @@ Lock-PodeObject -ScriptBlock {
                 Get-VMHost -Name $ESXiHost | Set-VMHost -State Maintenance
             } 
 
-## The Sleep is required to let MaintenanceMode to kick in - Tweak value? 30 seems OK
-## Move to an env variable for customization?
-## Is it required?
-# Start-Sleep -Seconds 30
-
-# Shut down vCenter goes here.
-## Hard shutdown right now (the VM is fake)
-## Add logic for check if vCenter is powered on? Kinda weird, as if it isn`t we won`t be able to do anything...
-
 Write-Podehost "6.2: Enable Maintenance Mode on vCenter host" -Foregroundcolor Green
-#Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync #Async helps?
-#Start-Sleep -Seconds 10
-
-#Write-Podehost "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
-# Idea to connect directly to the host and shut down the VM & enable maintmode?
-# Might be better in a live environment where the vC is within the same cluster/datacenter
-# Connect-VIServer -Server IP_ADDRESS -Protocol https -User USER -Password PASS Needs more variables for ESXi host...
-
-#Stop-VM $vCenterVMName -confirm:$false # Should be Shutdown-VMGuest $vCenterVMName -Confirm:$false only Stop because of fake VC.
+Get-VMHost -Name $vCHost | Set-VMHost -State Maintenance -RunAsync # Will not kick in since vCenter is not shut down yet.
+Start-Sleep -Seconds 10
 
 Write-Podehost "7: Disconnecting from <$vCenterServerFQDN>" -Foregroundcolor Green
 Disconnect-VIServer -Server $vCenterServerFQDN -Force -Confirm:$false
-
-# Test with direct host connection instead of vCenter
-# TODO: Hardcoded creds. Issue: https://github.com/h0bbel/powercli-bridge/issues/6
 
 Write-Podehost "8: Connecting to vCenter ESXi host: <$vCHost>" -Foregroundcolor Green
 
     Connect-VIServer -Server $vCHost -user $ESXiHostUsername -password $ESXiHostPassword
 
 Write-Podehost "8.1: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
-    Stop-VM $vCenterVMName -confirm:$false
+    Stop-VM $vCenterVMName -confirm:$false #  only Stop because of fake VC.
+    # Shutdown-VMGuest $vCenterVMName -Confirm:$false
+
+#Write-Podehost "7: Shutting down vCenter VM: <$vCenterVMName>" -Foregroundcolor Green
+# Idea to connect directly to the host and shut down the VM & enable maintmode?
+# Might be better in a live environment where the vC is within the same cluster/datacenter
+# Connect-VIServer -Server IP_ADDRESS -Protocol https -User USER -Password PASS Needs more variables for ESXi host...
+
 
 Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregroundcolor Green
     Set-VMHost -State Maintenance
@@ -244,10 +232,10 @@ Write-Podehost "8.2: Enable Maintenance Mode on vCenter host <$vCHost>" -Foregro
 # Disconnect all
 Disconnect-VIServer -Server * -Force -Confirm:$false
 
-# Shutdown hosts here
+# Shutdown ESXi hosts excluding host that runs vCenter
 Write-Podehost "9.0: Shutting down ESXi hosts" -Foregroundcolor Green
 
-ForEach ( $ESXiHost in $ESXiHosts ) # NOTE THIS DOES NOT INCLUDE VCHOST
+ForEach ( $ESXiHost in $ESXiHosts )
         {
             Write-Podehost "9.1: Direct Connect to <$ESXiHost>" -ForegroundColor Yellow
                 Connect-VIServer -Server $ESXihost -user $ESXiHostUsername -password $ESXiHostPassword
@@ -269,6 +257,6 @@ $elapsedTime = "{0:00}:{1:00}:{2:00}.{3:00}" -f $ts.Hours, $ts.Minutes, $ts.Seco
 Write-Podehost "All done - Total Elapsed Time $elapsedTime" -Foregroundcolor Green
 
 #Done
-Write-Podehost "Done: All defined UPS shutdown tasks have run, task completed." -ForegroundColor Cyan
+Write-Podehost "Done: All defined shutdown tasks have run, task completed." -ForegroundColor Cyan
 Write-Podehost "----------------------------------------------------------------" -ForegroundColor Cyan
-Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "NUT/UPS initiated shutdown completed in $elapsedTime."}
+Write-PodeJsonResponse -Value @{ "success" = "true";"version"= "$endpoint v$version";"message"= "REST API initiated shutdown completed in $elapsedTime."}
